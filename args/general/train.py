@@ -10,6 +10,8 @@ def train_args(parser: ArgumentParser):
 	parser.add_argument("--num_workers", type=int, default=0)
 	parser.add_argument("--optimizer", default='sgd', type=str)
 	parser.add_argument("--scheduler", default='multistep', type=str)
+	# add_argument milestones
+
 	parser.add_argument("--scheduler_interval", default=None, type=str)
 	parser.add_argument("--disable_tqdm", action='store_true', help="disable tqdm progress bar")
 	parser.add_argument("--distributed", action="store_true", help="distribute over different gpus ")
@@ -20,4 +22,7 @@ def train_args(parser: ArgumentParser):
 	parser.add_argument("--use_amp", choices=[0, 1], default=0, type=int, help="use apex for mixed precision training")
 	parser.add_argument("--use_swa", choices=[0, 1], default=0, type=int, help="use Stochastic Weight Averaging")
 	parser.add_argument("--grad_clip", choices=[0, 1], default=0, type=int, help="use gradient clipping")
-	parser.add_argument("--val_every_n_epoch", default=10, type=int)
+	parser.add_argument("--eval_every_n_epoch", default=10, type=int)
+	parser.add_argument("--use_logger", choices=[0, 1], default=1, type=int)
+	# add milestones
+	parser.add_argument("--milestones", default=None, type=int, nargs='+')

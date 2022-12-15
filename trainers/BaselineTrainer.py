@@ -23,7 +23,7 @@ class BaselineTrainer(pl.LightningModule):
 
     def configure_optimizers(self):
         opt = setup_optimizer(self.args, self.backbone)
-        scheduler = setup_scheduler(self.args, opt)
+        scheduler = setup_scheduler(self.args, opt, milestones=self.args.milestones)
         return [opt], [scheduler]
 
     def shared_step(self, batch, mode):

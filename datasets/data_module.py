@@ -1,10 +1,10 @@
 import numpy as np
-import torch.utils.data as data
-from models.multi_modality_perceiver import MultiModalityPerceiver, InputModality
+from torch.utils.data import Dataset
+from models.multi_modality_perceiver import InputModality
 import torch
 
 
-class NpDataset(data.Dataset):
+class NpDataset(Dataset):
 
     def __init__(self, data_path, modalities, transforms=None):
         self.transforms = transforms

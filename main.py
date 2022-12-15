@@ -37,10 +37,10 @@ def main(args):
 		weight_tie_layers=True
 	)
 	model = BaselineTrainer(args, backbone, name_modalities)
-
-
-	wandb_logger = set_logger(args, root_dir)
-	trainer = set_trainer(args, wandb_logger, save_path)
+	logger = None
+	if args.use_logger:
+		logger = set_logger(args, root_dir)
+	trainer = set_trainer(args, logger, save_path)
 	trainer.fit(model, train_loader, val_loader)
 	print('--------------finish training')
 
