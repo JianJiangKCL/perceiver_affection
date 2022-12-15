@@ -10,6 +10,7 @@ class NpDataset(data.Dataset):
         self.transforms = transforms
         d = np.load(data_path)
         for modality in modalities:
+
             setattr(self, modality, d[modality])
         self.modalities = sorted(modalities)
         self.transforms = transforms

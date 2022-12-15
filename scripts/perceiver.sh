@@ -20,5 +20,5 @@ DATASET_PATH=''
 
 CONFIG='configs/perceiver.yaml'
 
-CUDA_VISIBLE_DEVICES=$GPU_ID python main.py -c ${CONFIG} --dataset_path ${DATASET_PATH} --results_dir $SAVE_PATH  --seed $SEED   --wandb_mode offline
+CUDA_VISIBLE_DEVICES=$GPU_ID python main.py -c ${CONFIG}  --results_dir $SAVE_PATH  --seed $SEED   --wandb_mode offline
 

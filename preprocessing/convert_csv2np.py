@@ -38,7 +38,7 @@ def convert_data(root, mode):
 
 	data = pd.read_csv(path)
 
-	comb_OCEAN = get_OCEAN(data, labels)
+	comb_OCEAN = get_OCEAN(data, labels).astype(np.float32)
 
 	# following train data only has the feature data
 	drop_cols = ['ID_y', 'minute', 'session', 'gender', 'age','Unnamed: 0', 'Video', 'Unnamed: 0.1']
@@ -49,8 +49,8 @@ def convert_data(root, mode):
 	Fb_drop_cols = [(f'{i}_fb') for i in range(0, 552)]
 	Bt_drop_cols = [(f'{i}_bt') for i in range(0, 512)]
 
-	comb_bt = np.array(comb.drop([*Fb_drop_cols], axis=1))
-	comb_fb = np.array(comb.drop([*Bt_drop_cols], axis=1))
+	comb_bt = np.array(comb.drop([*Fb_drop_cols], axis=1)).astype(np.float32)
+	comb_fb = np.array(comb.drop([*Bt_drop_cols], axis=1)).astype(np.float32)
 
 	np.savez(f'{mode}_text_fb.npz', text=comb_bt, facebody=comb_fb, OCEAN=comb_OCEAN)
 
