@@ -1,3 +1,4 @@
 /train_text_fb.npz
 /validation_text_fb.npz
 /results/
+*.pyc
