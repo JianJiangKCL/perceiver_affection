@@ -129,8 +129,8 @@ class Attention(nn.Module):
         # todo if the original format is float 16, or the amp is used
         # Cast query and keys to float 32 to avoid instability as attention weights grow
         # during training, per https://twitter.com/tsuname/status/1430653484827697155?s=20
-        k = k.float()
-        q = q.float()
+        # k = k.float()
+        # q = q.float()
 
         q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> (b h) n d', h=h), (q, k, v))
         # matrix multiplication

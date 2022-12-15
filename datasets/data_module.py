@@ -3,6 +3,7 @@ import torch.utils.data as data
 from models.multi_modality_perceiver import MultiModalityPerceiver, InputModality
 import torch
 
+
 class NpDataset(data.Dataset):
 
     def __init__(self, data_path, modalities, transforms=None):
@@ -21,7 +22,7 @@ class NpDataset(data.Dataset):
         for modality in self.modalities:
             data = getattr(self, modality)[index]
             # convert np to tensor
-            data = torch.from_numpy(data)
+            data = torch.from_numpy(data).unsqueeze(-1)
             if self.transforms is not None:
                 data = self.transforms(data)
             modality_data.append(data)
@@ -46,7 +47,7 @@ text_modality = InputModality(
     )
 
 facebody_modality = InputModality(
-        name='facebody_modality',
+        name='facebody',
         input_channels=1,  # number of channels for each token of the input
         input_axis=1,
         num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)

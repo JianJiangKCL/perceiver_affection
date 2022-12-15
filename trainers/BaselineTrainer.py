@@ -4,7 +4,6 @@ import torch.nn as nn
 from pytorch_lightning.utilities import AttributeDict
 import torchmetrics
 import os
-from torchvision.models import resnet18, mobilenet_v2, vgg16_bn
 from funcs.module_funcs import setup_optimizer, setup_scheduler
 
 
@@ -12,8 +11,6 @@ class BaselineTrainer(pl.LightningModule):
     args: AttributeDict
     def __init__(self, args, backbone=None, modalities=None):
         super(BaselineTrainer, self).__init__()
-        self.metric_sum = 0
-        self.n_sum = 0
         self.train_metric = torchmetrics.MeanSquaredError()
         self.val_metric = torchmetrics.MeanSquaredError()
         self.test_metric = torchmetrics.MeanSquaredError()

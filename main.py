@@ -1,4 +1,6 @@
-from datasets.data_module import  Modalities
+import warnings
+warnings.filterwarnings("ignore")
+from datasets.data_module import Modalities
 from models.multi_modality_perceiver import MultiModalityPerceiver
 from funcs.build_dataset import get_loader
 from funcs.setup import parse_args, set_logger, set_trainer
