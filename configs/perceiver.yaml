@@ -1,0 +1,33 @@
+project: perceiver_affection
+name: text_facebody
+## general args
+# model
+arch : perceiver
+
+depth : 4
+num_latents : 16
+latent_dim : 512
+cross_heads : 1
+latent_heads : 8
+cross_dim_head : 64
+latent_dim_head : 64
+num_outputs : 5
+
+# train
+lr : 0.001
+epochs : 100
+num_workers : 4
+batch_size : 32
+
+distributed : False
+eval_every_n_epoch : 1
+gpus : 1
+optimizer : adamw
+scheduler : cosine
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+project: NWS_FC
+name: imagenet
+## general args
+
+# dataset
+dataset : imagenet
+image_size : 224
+patch_size : 14
+num_outputs : 1000
+# model
+n_emb : 512
+beta : 0.1
+arch : NwsTransformer
+depth : 6
+heads : 16
+mlp_dim : 2048
+atten_dim : 1024
+
+# train
+lr : 0.01
+epochs : 90
+num_workers : 4
+batch_size : 128
+
+distributed : True
+is_pretraining : 1
+#eval_every_n_epoch : 1
+gpus : 4
+optimizer : sgd
+scheduler : multistep
+
+# sgd lr 0.01 does not work
+
+
+
+
+
