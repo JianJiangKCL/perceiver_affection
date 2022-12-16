@@ -10,8 +10,9 @@ class NpDataset(Dataset):
         self.transforms = transforms
         d = np.load(data_path)
         for modality in modalities:
-
-            setattr(self, modality, d[modality])
+            # normalize data
+            setattr(self, modality, (d[modality] - d[modality].mean()) / d[modality].std())
+            # setattr(self, modality, d[modality])
         self.modalities = sorted(modalities)
         self.transforms = transforms
         self.targets = torch.from_numpy(d['OCEAN'])
@@ -22,6 +23,8 @@ class NpDataset(Dataset):
         # sorted name of modalities
         for modality in self.modalities:
             data = getattr(self, modality)[index]
+
+
             # convert np to tensor
             data = torch.from_numpy(data).unsqueeze(-1)
             if self.transforms is not None:

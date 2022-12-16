@@ -51,7 +51,7 @@ def set_logger(args, root_dir):
 def set_trainer(args, logger, save_path, kwargs=None):
     extra_kwargs = kwargs
     callbacks = []
-    checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_last=True)
+    checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_last=True, save_top_k=-1, monitor='val_loss', mode='min')
     callbacks.append(checkpoint_callback)
 
     if args.lr_logger and logger is not None:
