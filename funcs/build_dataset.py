@@ -8,7 +8,7 @@ def get_loader(args, name_modalities, mode):
 	dataset = NpDataset(os.path.join(args.dataset_path, f'{mode}_text_fb.npz'), name_modalities)
 	if mode == 'train':
 		loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, drop_last=False)
-	elif mode == 'validation':
+	elif mode == 'validation' or mode == 'test':
 		loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, drop_last=False)
 
 	else:

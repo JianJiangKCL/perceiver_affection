@@ -19,8 +19,8 @@ def main(args):
 	modalities = [Modalities[name] for name in name_modalities]
 
 	train_loader = get_loader(args, name_modalities, 'train')
-	val_loader = get_loader(args, name_modalities, 'validation')
-	test_loader = get_loader(args, name_modalities, 'validation')
+	val_loader = get_loader(args, name_modalities, 'test')
+	test_loader = get_loader(args, name_modalities, 'test')
 
 	backbone = MultiModalityPerceiver(
 		modalities=modalities,

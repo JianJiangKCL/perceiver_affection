@@ -1,7 +1,7 @@
 from torch import optim
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
 from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
-# from pl_bolts.optimizers.lamb
+from models.optimizers import Lamb
 
 
 def setup_optimizer(args, model):
@@ -11,8 +11,8 @@ def setup_optimizer(args, model):
 		opt = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=4e-5, nesterov=True)
 	elif args.optimizer == 'adamw':
 		opt = optim.AdamW(model.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
-	# elif args.optimizer == 'LAMB':
-	# 	opt = LAMB(model.parameters(), lr=args.lr, betas=(0.9, 0.999), eps=1e-6)
+	elif args.optimizer == 'lamb':
+		opt = Lamb(model.parameters(), lr=args.lr)
 	else:
 		raise NotImplementedError
 	return opt

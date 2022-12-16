@@ -56,20 +56,32 @@ def convert_data(root, mode):
 
 
 def main(args):
-	convert_data('multi_modality_csv', 'train')
+	# convert_data('multi_modality_csv', 'train')
 
-	convert_data('multi_modality_csv', 'validation')
+	# convert_data('multi_modality_csv', 'validation')
+	# convert_data('multi_modality_csv', 'test')
 	data = np.load('train_text_fb.npz')
-	text = data['text']
-	facebody = data['facebody']
-	OCEAN = data['OCEAN']
-	k=1
-	#
-	# comb_train_set, Y_train_set, O_train_set = convert_data('multi_modality_csv', 'train', 'age')
-	#
-	# comb_val_set, Y_val_set, O_val_set = convert_data('multi_modality_csv', 'validation', 'age')
 
-	# comb_test_set , M_test_set, F_test_set = convert_data('multi_modality_csv', 'test')
+	##################################
+	# combine train and validation data
+	train_text = data['text']
+	train_facebody = data['facebody']
+	train_OCEAN = data['OCEAN']
+
+	# data = np.load('validation_text_fb.npz')
+	# # combine train and validation data
+	# validation_text = data['text']
+	# validation_facebody = data['facebody']
+	# validation_OCEAN = data['OCEAN']
+	#
+	# train_text = np.concatenate((train_text, validation_text), axis=0)
+	# train_facebody = np.concatenate((train_facebody, validation_facebody), axis=0)
+	# train_OCEAN = np.concatenate((train_OCEAN, validation_OCEAN), axis=0)
+	#
+	# np.savez('train_text_fb.npz', text=train_text, facebody=train_facebody, OCEAN=train_OCEAN)
+	##################################
+	k=1
+
 
 
 

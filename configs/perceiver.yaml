@@ -23,7 +23,7 @@ batch_size : 32
 distributed : False
 eval_every_n_epoch : 1
 gpus : 1
-optimizer : sgd
+optimizer : lamb
 scheduler : multistep
 milestones : [84, 102, 114]
 
