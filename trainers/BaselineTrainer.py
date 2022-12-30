@@ -1,38 +1,28 @@
-import pytorch_lightning as pl
 import torch.nn as nn
-
-from pytorch_lightning.utilities import AttributeDict
 import torchmetrics
 import os
-from funcs.module_funcs import setup_optimizer, setup_scheduler
+from trainers.TrainerABC import TrainerABC
+import torch
+from models.losses import get_binary_ocean_values, DIR_metric
 
 
-class BaselineTrainer(pl.LightningModule):
-    args: AttributeDict
-    def __init__(self, args, backbone=None, modalities=None):
-        super(BaselineTrainer, self).__init__()
+class BaselineTrainer(TrainerABC):
+    def __init__(self, args, backbone, modalities):
+        super(BaselineTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
         self.train_metric = torchmetrics.MeanSquaredError()
         self.val_metric = torchmetrics.MeanSquaredError()
         self.test_metric = torchmetrics.MeanSquaredError()
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         # define a regression loss
         self.criterion = nn.MSELoss()
-        self.modalities = sorted(modalities)
-        self.args = args
-        self.backbone = backbone
-
-    def configure_optimizers(self):
-        opt = setup_optimizer(self.args, self.backbone)
-        scheduler = setup_scheduler(self.args, opt, milestones=self.args.milestones)
-        return [opt], [scheduler]
 
     def shared_step(self, batch, mode):
-        x, y = batch
+        x, label_ocean = batch
         modalities_x = {modality: x[modality] for modality in self.modalities}
         
-        y_hat = self.backbone(modalities_x)
-        loss = self.criterion(y_hat, y)
-        self.metrics[mode].update(y_hat, y)
+        pred_ocean = self.backbone(modalities_x)
+        loss = self.criterion(pred_ocean, label_ocean)
+        self.metrics[mode].update(pred_ocean, label_ocean)
         metric = self.metrics[mode].compute()
         lr = self.trainer.optimizers[0].param_groups[0]['lr']
         log_data = {
@@ -40,34 +30,19 @@ class BaselineTrainer(pl.LightningModule):
             f'{mode}_metric': metric,
             f'lr': lr
         }
+        
         self.log_dict(log_data, prog_bar=not self.args.disable_tqdm, sync_dist=False if mode == 'train' else True, on_step=True if mode == 'train' else False, on_epoch=False if mode == 'train' else True)
+        prefix = '' if mode == 'train' else f'{mode}_'
+        ret = {f'{prefix}loss': loss}
 
-        return loss
+        return ret
 
-    def shared_epoch_end(self, mode):
+    def shared_epoch_end(self, outputs, mode):
         local_rank = os.getenv("LOCAL_RANK", 0)
         metric = self.metrics[mode].compute()
         if local_rank == 0:
             print(f'{mode}_metric: {metric}')
+
         self.metrics[mode].reset()
 
-    def training_step(self, batch, batch_idx):
-        loss = self.shared_step(batch, 'train')
-        # must return loss
-        return loss
-
-    def training_epoch_end(self, outputs):
-        self.shared_epoch_end('train')
-
-    def validation_step(self, batch, batch_idx):
-        self.shared_step(batch, 'val')
-
-    def validation_epoch_end(self, outputs):
-        self.shared_epoch_end('val')
-
-    def test_step(self, batch, batch_idx):
-        self.shared_step(batch, 'test')
-
-    def test_epoch_end(self, outputs):
-        self.shared_epoch_end('test')
 

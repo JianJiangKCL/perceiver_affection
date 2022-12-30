@@ -10,8 +10,8 @@ from .caching import cache_by_name_fn
 from models.modalities import InputModality, modality_encoding
 from models.perceiver import PreNorm, Attention, FeedForward, cache_fn, fourier_encode, \
     FeedForwardGELU
-from models.common import build_perceiver_layers
-
+from models.perceiver import build_perceiver_layers
+from models.cosine_linear import CosineLinear
 
 # An implementation of Perceiver that can accept multiple data modalities in the same forward.
 class MultiModalityPerceiver(nn.Module):
@@ -85,15 +85,22 @@ class MultiModalityPerceiver(nn.Module):
             nn.LayerNorm(latent_dim),
             nn.Linear(latent_dim, num_outputs)
         )
+        self.cosine_fc = CosineLinear(latent_dim, 2)
 
     def forward(self, multi_modality_data: Dict[str, Tensor], mask=None):
+
+        x = self.extract_features(multi_modality_data, mask)
+
+        return self.to_logits(x)
+
+    def extract_features(self, multi_modality_data: Dict[str, Tensor], mask=None):
         """
 
-        :param data: a dictionary where keys are modality names and Tensor contain a batch
-        of modality input data.
-        :param mask:
-        :return:
-        """
+       :param data: a dictionary where keys are modality names and Tensor contain a batch
+       of modality input data.
+       :param mask:
+       :return:
+       """
         batch_sizes = set()
         num_modalities = len(multi_modality_data)
         linearized_data = []
@@ -143,8 +150,7 @@ class MultiModalityPerceiver(nn.Module):
             x = cross_ff(x) + x
             x = latent_transformer(x) + x
         x = self.pool(x)
-
-        return self.to_logits(x)
+        return x
 
     def pool(self, x):
         """

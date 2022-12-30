@@ -8,6 +8,8 @@ from funcs.utils_funcs import load_state_from_ddp, set_seed
 import os
 import wandb
 from trainers.BaselineTrainer import BaselineTrainer
+from trainers.MultiTaskTrainer import MultiTaskTrainer
+
 
 def main(args):
 
@@ -18,7 +20,7 @@ def main(args):
 	name_modalities = ['text', 'facebody']
 	modalities = [Modalities[name] for name in name_modalities]
 
-	train_loader = get_loader(args, name_modalities, 'train')
+	train_loader = get_loader(args, name_modalities, 'train_val')
 	val_loader = get_loader(args, name_modalities, 'test')
 	test_loader = get_loader(args, name_modalities, 'test')
 
@@ -36,7 +38,9 @@ def main(args):
 		ff_dropout=0.,
 		weight_tie_layers=True
 	)
-	model = BaselineTrainer(args, backbone, name_modalities)
+	Trainer = MultiTaskTrainer if args.multi_task else BaselineTrainer
+	model = Trainer(args, backbone, name_modalities)
+
 	logger = None
 	if args.use_logger:
 		logger = set_logger(args, root_dir)
@@ -47,7 +51,6 @@ def main(args):
 	trainer.save_checkpoint(f'{save_path}/checkpoint.pt')
 	trainer.test(model, test_loader)
 	wandb.finish()
-
 
 
 if __name__ == "__main__":

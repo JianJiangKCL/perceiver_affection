@@ -38,11 +38,11 @@ class NpDataset(Dataset):
 # one task is predicting OCEAN, the other is predicting sensitive label
 class MultiTaskDataset(NpDataset):
 
-    def __init__(self, data_path, modalities, sensitive_label, transforms=None):
+    def __init__(self, data_path, modalities, sensitive_group, transforms=None):
         super().__init__(data_path, modalities, transforms)
-        self.sensitive_label = sensitive_label
+        self.sensitive_label = sensitive_group
         d = np.load(data_path)
-        self.sensitive_targets = torch.from_numpy(d[sensitive_label])
+        self.sensitive_targets = torch.from_numpy(d[sensitive_group])
 
     def __getitem__(self, index):
         modality_data, ocean_target = super().__getitem__(index)

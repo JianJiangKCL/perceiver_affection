@@ -40,10 +40,10 @@ def convert_data(data_path, mode, save_path):
 
 	gender = data.gender.to_numpy()
 	# map gender, M is 1, F is 0
-	mapped_gender = np.array([1 if g == 'M' else 0 for g in gender])
+	mapped_gender = np.array([1 if g == 'M' else 0 for g in gender]).astype(np.int64)
 	age = data.age.to_numpy()
 	# map gender, <30 is 1, >=30 is 0
-	mapped_age = np.array([1 if a < 30 else 0 for a in age])
+	mapped_age = np.array([1 if a < 30 else 0 for a in age]).astype(np.int64)
 	comb_OCEAN = get_OCEAN(data, labels).astype(np.float32)
 
 	# following train data only has the feature data

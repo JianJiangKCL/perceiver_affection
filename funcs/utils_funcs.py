@@ -7,6 +7,7 @@ import random
 import yaml
 import re
 import logging
+from functools import wraps
 
 
 class Namespace(object):
@@ -112,3 +113,32 @@ def load_state_from_ddp(model, state_dict):
     model.to('cuda')
     return model
 
+
+def exists(val):
+    return val is not None
+
+
+def default(val, d):
+    return val if exists(val) else d
+
+
+def tensor_to_np(x):
+    if isinstance(x, torch.Tensor):
+        return x.detach().cpu().numpy()
+    return x
+
+
+def cache_fn(f):
+    cache = None
+
+    @wraps(f)
+    def cached_fn(*args, _cache=True, **kwargs):
+        if not _cache:
+            return f(*args, **kwargs)
+        nonlocal cache
+        if cache is not None:
+            return cache
+        cache = f(*args, **kwargs)
+        return cache
+
+    return cached_fn

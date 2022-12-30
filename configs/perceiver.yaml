@@ -15,17 +15,17 @@ num_outputs : 5
 
 # train
 lr : 0.004
-epochs : 120
+epochs : 60
 
 num_workers : 4
 batch_size : 32
 
 distributed : False
-eval_every_n_epoch : 1
+eval_every_n_epoch : 10
 gpus : 1
 optimizer : lamb
 scheduler : multistep
-milestones : [84, 102, 114]
+#milestones : [84, 102, 114]
 
 
 
