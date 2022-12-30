@@ -64,6 +64,7 @@ def get_binary_ocean_values(ocean_values, STE=True):
 # DIR is not suitable for mini-batch updating, as the privileged group is not fixed and the three divisions are easy to have 0s.
 # preds come in a batch manner, so the size is [batch_size, 5]
 # the sensitive_labels is [batch_size]
+# DIR close to 1; SPD close to 0
 def DIR_metric(OCEAN_bin_preds, sensitive_labels):
 
     # get indices where sensitive labels are 1 via torch

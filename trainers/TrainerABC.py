@@ -56,3 +56,9 @@ class TrainerABC(pl.LightningModule):
     def test_epoch_end(self, outputs):
         self.shared_epoch_end(outputs, 'test')
 
+    def log_out(self, log_data, mode):
+        if mode == 'train':
+            log_data['lr'] = self.trainer.optimizers[0].param_groups[0]['lr']
+        self.log_dict(log_data, prog_bar=not self.args.disable_tqdm, sync_dist=False if mode == 'train' else True,
+                      on_step=True if mode == 'train' else False, on_epoch=False if mode == 'train' else True)
+

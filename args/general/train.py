@@ -26,3 +26,4 @@ def train_args(parser: ArgumentParser):
 	parser.add_argument("--use_logger", choices=[0, 1], default=1, type=int)
 	# add milestones
 	parser.add_argument("--milestones", default=None, type=int, nargs='+')
+	parser.add_argument("--test_only", choices=[0, 1], default=0, type=int, help="test only")

@@ -12,7 +12,7 @@ SEEDS=(
 )
 
 SEED=${SEEDS[0]}
-SAVE_PATH='results'
+SAVE_PATH='results/cosine_mtl'
 
 
 
@@ -23,5 +23,5 @@ DATASET_PATH=''
 
 CONFIG='configs/perceiver.yaml'
 
-CUDA_VISIBLE_DEVICES=$GPU_ID python main.py -c ${CONFIG}  --results_dir $SAVE_PATH  --seed $SEED   --wandb_mode offline -t eval_every_n_epoch=10 -t batch_size=128
+CUDA_VISIBLE_DEVICES=$GPU_ID python main.py -c ${CONFIG}  --results_dir $SAVE_PATH  --seed $SEED   --wandb_mode offline -t eval_every_n_epoch=10 -t batch_size=32
 

@@ -95,7 +95,7 @@ def set_parameter_requires_grad(model, feature_extracting):
             param.requires_grad = False
 
 
-def load_state_from_ddp(model, state_dict):
+def load_state_dict_flexible_(model, state_dict):
     # create new OrderedDict that does not contain `module.`
     new_state_dict = OrderedDict()
     for k, v in state_dict.items():
@@ -109,7 +109,8 @@ def load_state_from_ddp(model, state_dict):
             name = k
         new_state_dict[name] = v
     # load params
-    model.load_state_dict(new_state_dict)
+
+    model.load_state_dict(new_state_dict, strict=False)
     model.to('cuda')
     return model
 

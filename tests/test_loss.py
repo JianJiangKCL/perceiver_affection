@@ -42,5 +42,4 @@ def test_xPR():
 
 
 def test_binary_OCEAN():
-
-k=1
+	pass

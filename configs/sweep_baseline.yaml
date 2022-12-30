@@ -1,0 +1,40 @@
+project: perceiver_affection
+
+
+program: main.py
+name: baseline_hyper
+method: grid
+parameters:
+  depth:
+    values: [4, 6, 8]
+  lr:
+    values: [0.004, 0.002, 0.001]
+  num_latents: 16
+  latent_dim: 512
+  cross_heads: 1
+  latent_heads: 8
+  cross_dim_head: 64
+  latent_dim_head: 64
+  num_outputs: 5
+
+  epochs : 60
+  num_workers: 4
+  batch_size: 32
+
+  distributed: False
+  eval_every_n_epoch: 10
+  gpus: 1
+  optimizer: lamb
+  scheduler: multistep
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

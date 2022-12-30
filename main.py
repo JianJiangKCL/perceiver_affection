@@ -4,12 +4,12 @@ from datasets.data_module import Modalities
 from models.multi_modality_perceiver import MultiModalityPerceiver
 from funcs.build_dataset import get_loader
 from funcs.setup import parse_args, set_logger, set_trainer
-from funcs.utils_funcs import load_state_from_ddp, set_seed
+from funcs.utils_funcs import load_state_dict_flexible_, set_seed
 import os
 import wandb
 from trainers.BaselineTrainer import BaselineTrainer
 from trainers.MultiTaskTrainer import MultiTaskTrainer
-
+import torch
 
 def main(args):
 
@@ -38,6 +38,11 @@ def main(args):
 		ff_dropout=0.,
 		weight_tie_layers=True
 	)
+
+	if args.finetune:
+		checkpoint = torch.load(args.finetune)
+		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
+
 	Trainer = MultiTaskTrainer if args.multi_task else BaselineTrainer
 	model = Trainer(args, backbone, name_modalities)
 
@@ -45,10 +50,10 @@ def main(args):
 	if args.use_logger:
 		logger = set_logger(args, root_dir)
 	trainer = set_trainer(args, logger, save_path)
-	trainer.fit(model, train_loader, val_loader)
-	print('--------------finish training')
-
-	trainer.save_checkpoint(f'{save_path}/checkpoint.pt')
+	if not args.test_only:
+		trainer.fit(model, train_loader, val_loader)
+		print('--------------finish training')
+		trainer.save_checkpoint(f'{save_path}/checkpoint.pt')
 	trainer.test(model, test_loader)
 	wandb.finish()
 
