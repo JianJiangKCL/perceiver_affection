@@ -22,6 +22,8 @@ class TrainerABC(pl.LightningModule):
     def configure_optimizers(self):
         opt = setup_optimizer(self.args, self.backbone)
         scheduler = setup_scheduler(self.args, opt, milestones=self.args.milestones)
+        if scheduler is None:
+            return opt
         return [opt], [scheduler]
 
     def shared_step(self, batch, mode):

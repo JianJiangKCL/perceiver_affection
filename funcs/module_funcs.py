@@ -29,12 +29,14 @@ def setup_scheduler(args, opt, milestones=None):
 
 		op_multi = lambda a, b: int(a * b)
 		if milestones is None:
-			if args.optimizer == 'adam':
+			if args.optimizer == 'adam' or args.optimizer == 'adamw' or args.optimizer == 'lamb':
 				milestones = list((map(op_multi, [0.5], [args.epochs])))
 			elif args.optimizer == 'sgd':
 				milestones = list((map(op_multi, [0.5, 0.8], [args.epochs, args.epochs])))
 		scheduler = MultiStepLR(opt, milestones=milestones, gamma=0.1)
 		scheduler_interval = 'epoch'
+	elif args.scheduler == 'none' or args.scheduler == 'constant':
+		return None
 	else:
 		raise NotImplementedError
 	if args.scheduler_interval is not None:

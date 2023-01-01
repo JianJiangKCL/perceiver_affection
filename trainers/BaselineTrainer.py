@@ -3,7 +3,7 @@ import torchmetrics
 import os
 from trainers.TrainerABC import TrainerABC
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
 
 
 class BaselineTrainer(TrainerABC):
@@ -39,6 +39,7 @@ class BaselineTrainer(TrainerABC):
         local_rank = os.getenv("LOCAL_RANK", 0)
         metric = self.metrics[mode].compute()
         if local_rank == 0:
+            log_DIR(outputs, mode)
             print(f'{mode}_metric: {metric}')
 
         self.metrics[mode].reset()

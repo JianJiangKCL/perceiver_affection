@@ -1,31 +1,42 @@
-project: perceiver_affection
+project: perceiver_affection_hyper
 
 
 program: main.py
 name: baseline_hyper
 method: grid
 parameters:
-  depth:
-    values: [4, 6, 8]
+#  depth:
+#    values: [4, 6]
+#  lr:
+#    values: [0.004, 0.02, 0.01]
+#
+#  wandb_mode:
+#    values: ["online"]
+#  scheduler:
+#    values: ["multistep", "cosine"]
+#  optimizer:
+#        values: ["lamb", 'sgd', "adam"]
+#
+#  epochs:
+#    values: [30, 60]
   lr:
-    values: [0.004, 0.002, 0.001]
-  num_latents: 16
-  latent_dim: 512
-  cross_heads: 1
-  latent_heads: 8
-  cross_dim_head: 64
-  latent_dim_head: 64
-  num_outputs: 5
+    values: [0.01, 0.02, 0.004]
 
-  epochs : 60
-  num_workers: 4
-  batch_size: 32
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["cosine", 'multistep']
+  optimizer:
+        values: ["adam",  "lamb"]
+  seed:
+    values: [1995, 0, 36]
 
-  distributed: False
-  eval_every_n_epoch: 10
-  gpus: 1
-  optimizer: lamb
-  scheduler: multistep
+  epochs:
+    values: [30, 60]
+
+  is_baseline:
+    values: [1]
+
 
 metric:
   goal: minimize

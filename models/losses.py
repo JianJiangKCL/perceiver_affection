@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from funcs.utils_funcs import tensor_to_np
-
+import wandb
 
 # knowledge distillation loss
 class KnowledgeDistillationLoss(nn.Module):
@@ -111,6 +111,18 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     return DIRs, SPDs
 
 
+def log_DIR(outputs, mode):
+    pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
+    binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
+    sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
+    # calculate OCEAN individually
+    metric_name = ['O', 'C', 'E', 'A', 'N']
+    DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
+    for i in range(5):
+        wandb.log({f'{mode}_DIR_{metric_name[i]}': DIRs[i]})
+        wandb.log({f'{mode}_SPD_{metric_name[i]}': SPDs[i]})
+
+
 # formulation of TPR
 # TPR= TP/(TP+FN)
 # # formulation of FPR
@@ -125,8 +137,8 @@ def compute_xPR(y_pred, y_gt, TPR=True):
     nxN = torch.sum(torch.logical_and(y_pred == 0, y_gt == flag))
     sum = xP + nxN
     # todo, sum can be 0
-    if sum == 0:
-        return 1
+    # if sum == 0:
+    #     return 1
     return xP / (xP + nxN)
 
 
@@ -134,5 +146,18 @@ def compute_gap(R1, R0):
     # absolute difference between TPR1 and TPR0
     return np.abs(R1 - R0)
 
+def log_gap(outputs, mode):
+    pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
+    binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
+    label_ocean = torch.cat([output['label_ocean'] for output in outputs])
+    binary_label_ocean = get_binary_ocean_values(label_ocean, STE=False)
+
+    # calculate OCEAN individually
+    metric_name = ['O', 'C', 'E', 'A', 'N']
+    for i in range(5):
+        R1 = compute_xPR(binary_pred_ocean[:, i], binary_label_ocean[:, i], TPR=True)
+        R0 = compute_xPR(binary_pred_ocean[:, i], binary_label_ocean[:, i], TPR=False)
+        gap = compute_gap(R1, R0)
+        wandb.log(f'{mode}_gap_{metric_name[i]}: {gap}')
 
 # def equal_opportunity_metric():

@@ -7,7 +7,7 @@ def train_args(parser: ArgumentParser):
 	parser.add_argument("--lr", type=float, default=0.1)
 	parser.add_argument("--epochs", type=int, default=200)
 	parser.add_argument("--warmup_epochs", type=int, default=10)
-	parser.add_argument("--num_workers", type=int, default=0)
+	parser.add_argument("--num_workers", type=int, default=4)
 	parser.add_argument("--optimizer", default='sgd', type=str)
 	parser.add_argument("--scheduler", default='multistep', type=str)
 	# add_argument milestones

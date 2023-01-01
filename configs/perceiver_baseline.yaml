@@ -14,18 +14,20 @@ latent_dim_head : 64
 num_outputs : 5
 
 # train
-lr : 0.01
-epochs : 30
+lr : 0.004
+epochs : 60
 
 num_workers : 4
-batch_size : 32
+batch_size : 128
 
 distributed : False
 eval_every_n_epoch : 10
 gpus : 1
-optimizer : adam
-scheduler : cosine
-#milestones : [84, 102, 114]
+optimizer : lamb
+scheduler : constant
+is_baseline : 1
+seed: 36
+
 
 
 

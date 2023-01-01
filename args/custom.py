@@ -21,4 +21,5 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--num_outputs", default=5, type=int)
 	parser.add_argument("--multi_task", choices=[0, 1], type=int, default=1)
 	parser.add_argument("--sensitive_group", default='gender', type=str)
+	parser.add_argument("--is_baseline", choices=[0, 1], type=int, default=0)
 

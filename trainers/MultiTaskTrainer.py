@@ -5,8 +5,8 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric
-
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
+import wandb
 
 class MultiTaskTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities):
@@ -48,16 +48,9 @@ class MultiTaskTrainer(TrainerABC):
         local_rank = os.getenv("LOCAL_RANK", 0)
         metric = self.metrics[mode].compute()
         if local_rank == 0:
-            pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
-            binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
-            sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
-            # calculate OCEAN individually
-            metric_name = ['O', 'C', 'E', 'A', 'N']
-            DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
-            for i in range(5):
-                print(f'{mode}_DIR_{metric_name[i]}: {DIRs[i]}')
-                print(f'{mode}_SPD_{metric_name[i]}: {SPDs[i]}')
-            print(f'{mode}_metric: {metric}')
+            #todo if this is different from loss_ocean
+            wandb.log({f'{mode}_mse': metric})
+            log_DIR(outputs, mode)
         self.metrics[mode].reset()
 
     def training_epoch_end(self, outputs):

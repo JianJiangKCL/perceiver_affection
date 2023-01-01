@@ -11,10 +11,12 @@ from trainers.BaselineTrainer import BaselineTrainer
 from trainers.MultiTaskTrainer import MultiTaskTrainer
 import torch
 
+
 def main(args):
 
-	root_dir = f"{args.results_dir}/{args.arch}_lr{args.lr}_e{args.epochs}_seed{args.seed}"
-	save_path = os.path.join(root_dir, f'task{args.task_id}')
+	root_dir = save_path = f"{args.results_dir}/lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
+						   f"bs{args.batch_size}_scheduler{args.scheduler}"
+
 	os.makedirs(save_path, exist_ok=True)
 
 	name_modalities = ['text', 'facebody']
@@ -43,7 +45,7 @@ def main(args):
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
 
-	Trainer = MultiTaskTrainer if args.multi_task else BaselineTrainer
+	Trainer = MultiTaskTrainer if args.is_baseline else BaselineTrainer
 	model = Trainer(args, backbone, name_modalities)
 
 	logger = None

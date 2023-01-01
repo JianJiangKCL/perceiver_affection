@@ -1,0 +1,36 @@
+project: perceiver_affection
+
+
+program: main.py
+name: mtl_seed
+method: grid
+parameters:
+
+  lr:
+    values: [0.01]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["cosine"]
+  optimizer:
+        values: ["adam", "lamb"]
+  seed:
+    values: [1995, 0, 36]
+
+  epochs:
+    values: [10, 30, 60]
+
+  finetune:
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+
