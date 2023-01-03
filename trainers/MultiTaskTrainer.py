@@ -8,6 +8,7 @@ import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
 import wandb
 
+
 class MultiTaskTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities):
         super(MultiTaskTrainer, self).__init__(args, backbone, modalities)
@@ -39,7 +40,7 @@ class MultiTaskTrainer(TrainerABC):
         }
         self.log_out(log_data, mode)
 
-        loss = loss_ocean + loss_sen
+        loss = loss_ocean + self.args.beta * loss_sen
         prefix = '' if mode == 'train' else f'{mode}_'
         ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean}
         return ret
@@ -48,8 +49,8 @@ class MultiTaskTrainer(TrainerABC):
         local_rank = os.getenv("LOCAL_RANK", 0)
         metric = self.metrics[mode].compute()
         if local_rank == 0:
-            #todo if this is different from loss_ocean
-            wandb.log({f'{mode}_mse': metric})
+
+            wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
             log_DIR(outputs, mode)
         self.metrics[mode].reset()
 

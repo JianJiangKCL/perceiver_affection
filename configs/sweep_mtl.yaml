@@ -1,4 +1,4 @@
-project: perceiver_affection
+project: perceiver_affection_mtl_hyper
 
 
 program: main.py
@@ -7,12 +7,12 @@ method: grid
 parameters:
 
   lr:
-    values: [0.01]
+    values: [0.01, 0.02, 0.004]
 
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: ["cosine"]
+    values: ["cosine", "multistep", "constant"]
   optimizer:
         values: ["adam", "lamb"]
   seed:
@@ -21,8 +21,13 @@ parameters:
   epochs:
     values: [10, 30, 60]
 
+  beta:
+    values: [0, 0.1, 0.5, 1.0]
   finetune:
+    values: ["", "/vol/jj/proj/perceiver_affection/results/baseline/lr0.004_e60_seed36_optlamb_bs128_schedulerconstant/last.ckpt"]
 
+  is_baseline:
+    values: [0]
 metric:
   goal: minimize
   name: test_loss

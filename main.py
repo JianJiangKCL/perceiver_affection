@@ -15,7 +15,7 @@ import torch
 def main(args):
 
 	root_dir = save_path = f"{args.results_dir}/lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_scheduler{args.scheduler}"
+						   f"bs{args.batch_size}_scheduler{args.scheduler}_beta{args.beta}"
 
 	os.makedirs(save_path, exist_ok=True)
 
@@ -44,8 +44,8 @@ def main(args):
 	if args.finetune:
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
-
-	Trainer = MultiTaskTrainer if args.is_baseline else BaselineTrainer
+	# todo ,baseline need to adjust; or simply adjust the mtl using if
+	Trainer = BaselineTrainer if args.is_baseline else MultiTaskTrainer
 	model = Trainer(args, backbone, name_modalities)
 
 	logger = None

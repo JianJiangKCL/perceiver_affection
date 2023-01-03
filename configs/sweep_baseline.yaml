@@ -1,4 +1,4 @@
-project: perceiver_affection_hyper
+project: perceiver_affection_hyper2
 
 
 program: main.py
@@ -25,7 +25,7 @@ parameters:
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: ["cosine", 'multistep']
+    values: ["cosine", 'multistep', "constant"]
   optimizer:
         values: ["adam",  "lamb"]
   seed:

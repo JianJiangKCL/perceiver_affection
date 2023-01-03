@@ -4,6 +4,7 @@ import os
 from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
+import wandb
 
 
 class BaselineTrainer(TrainerABC):
@@ -15,9 +16,10 @@ class BaselineTrainer(TrainerABC):
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         # define a regression loss
         self.criterion = nn.MSELoss()
+        print('baseline trainer')
 
     def shared_step(self, batch, mode):
-        x, label_ocean = batch
+        x, label_ocean, label_sen = batch
         modalities_x = {modality: x[modality] for modality in self.modalities}
         
         pred_ocean = self.backbone(modalities_x)
@@ -31,7 +33,7 @@ class BaselineTrainer(TrainerABC):
         
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
-        ret = {f'{prefix}loss': loss}
+        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean}
 
         return ret
 
@@ -39,8 +41,8 @@ class BaselineTrainer(TrainerABC):
         local_rank = os.getenv("LOCAL_RANK", 0)
         metric = self.metrics[mode].compute()
         if local_rank == 0:
+            wandb.log({f'{mode}_mse': metric})
             log_DIR(outputs, mode)
-            print(f'{mode}_metric: {metric}')
 
         self.metrics[mode].reset()
 
