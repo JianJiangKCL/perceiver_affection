@@ -30,7 +30,7 @@ def setup_scheduler(args, opt, milestones=None):
 		op_multi = lambda a, b: int(a * b)
 		if milestones is None:
 			if args.optimizer == 'adam' or args.optimizer == 'adamw' or args.optimizer == 'lamb':
-				milestones = list((map(op_multi, [0.5], [args.epochs])))
+				milestones = list((map(op_multi, [0.7, 0.85, 0.95], [args.epochs])))
 			elif args.optimizer == 'sgd':
 				milestones = list((map(op_multi, [0.5, 0.8], [args.epochs, args.epochs])))
 		scheduler = MultiStepLR(opt, milestones=milestones, gamma=0.1)

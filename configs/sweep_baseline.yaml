@@ -5,34 +5,27 @@ program: main.py
 name: baseline_hyper
 method: grid
 parameters:
-#  depth:
-#    values: [4, 6]
-#  lr:
-#    values: [0.004, 0.02, 0.01]
-#
-#  wandb_mode:
-#    values: ["online"]
-#  scheduler:
-#    values: ["multistep", "cosine"]
-#  optimizer:
-#        values: ["lamb", 'sgd', "adam"]
-#
-#  epochs:
-#    values: [30, 60]
+  depth:
+    values: [3, 4]
+
+  num_latents:
+    values: [16]
+  latent_dim:
+    values: [512]
   lr:
-    values: [0.01, 0.02, 0.004]
+    values: [0.004]
 
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: ["cosine", 'multistep', "constant"]
+    values: ['multistep'] #, "constant"]
   optimizer:
-        values: ["adam",  "lamb"]
+        values: ["lamb"]
   seed:
-    values: [1995, 0, 36]
+    values: [1993, 1994, 1995, 1996 , 2000]
 
   epochs:
-    values: [30, 60]
+    values: [60]
 
   is_baseline:
     values: [1]

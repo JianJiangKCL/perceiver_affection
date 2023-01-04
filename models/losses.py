@@ -5,6 +5,7 @@ import numpy as np
 from funcs.utils_funcs import tensor_to_np
 import wandb
 
+
 # knowledge distillation loss
 class KnowledgeDistillationLoss(nn.Module):
     def __init__(self, T, alpha):
@@ -61,24 +62,31 @@ def get_binary_ocean_values(ocean_values, STE=True):
     return ret
 
 
+def separate_binary_label_group(to_separate, labels):
+    # get indices where labels are 1 via torch
+    indices_1 = torch.where(labels == 1)[0]
+
+    # get indices where sensitive labels are 0
+    indices_0 = torch.where(labels == 0)[0]
+
+    # get the OCEAN values for the indices where labels are 1
+    group_1 = to_separate[indices_1]
+    # get the OCEAN values for the indices where labels are 0
+    group_0 = to_separate[indices_0]
+
+    return group_0, group_1
+
+
 # DIR is not suitable for mini-batch updating, as the privileged group is not fixed and the three divisions are easy to have 0s.
+# even in the batch manner, the DIR can have 0s.
 # preds come in a batch manner, so the size is [batch_size, 5]
 # the sensitive_labels is [batch_size]
 # DIR close to 1; SPD close to 0
 def DIR_metric(OCEAN_bin_preds, sensitive_labels):
 
-    # get indices where sensitive labels are 1 via torch
-    indices_1 = torch.where(sensitive_labels == 1)[0]
-
-    # get indices where sensitive labels are 0
-    indices_0 = torch.where(sensitive_labels == 0)[0]
-
-    # get the OCEAN values for the indices where sensitive labels are 1
-    OCEAN_preds_1 = OCEAN_bin_preds[indices_1]
-    # get the OCEAN values for the indices where sensitive labels are 0
-    OCEAN_preds_0 = OCEAN_bin_preds[indices_0]
-    num_1 = len(indices_1)
-    num_0 = len(indices_0)
+    OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, sensitive_labels)
+    num_1 = len(OCEAN_preds_1)
+    num_0 = len(OCEAN_preds_0)
     if num_1 > num_0:
         privileged_preds = OCEAN_preds_1
         unprivileged_preds = OCEAN_preds_0
@@ -99,7 +107,7 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
         #todo three divisions may have 0s.
 
         # calculate the proportion of positive predictions (y==1) for the privileged group
-        tmp =  torch.sum(privileged_preds[:, i])
+        tmp = torch.sum(privileged_preds[:, i])
         p_privileged = tmp / num_privileged
         # calculate the proportion of positive predictions (y==1) for the unprivileged group
         p_unprivileged = torch.sum(unprivileged_preds[:, i]) / num_unprivileged
@@ -115,6 +123,7 @@ def log_DIR(outputs, mode):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
     sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
+
     # calculate OCEAN individually
     metric_name = ['O', 'C', 'E', 'A', 'N']
     DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
@@ -146,18 +155,26 @@ def compute_gap(R1, R0):
     # absolute difference between TPR1 and TPR0
     return np.abs(R1 - R0)
 
-def log_gap(outputs, mode):
+
+def log_gap(outputs, mode, TPR=True):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
     label_ocean = torch.cat([output['label_ocean'] for output in outputs])
     binary_label_ocean = get_binary_ocean_values(label_ocean, STE=False)
+    sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
+    
+    OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(binary_pred_ocean, sensitive_labels)
+
+    label_ocean_0, label_ocean_1 = separate_binary_label_group(binary_label_ocean, sensitive_labels)
 
     # calculate OCEAN individually
-    metric_name = ['O', 'C', 'E', 'A', 'N']
-    for i in range(5):
-        R1 = compute_xPR(binary_pred_ocean[:, i], binary_label_ocean[:, i], TPR=True)
-        R0 = compute_xPR(binary_pred_ocean[:, i], binary_label_ocean[:, i], TPR=False)
-        gap = compute_gap(R1, R0)
-        wandb.log(f'{mode}_gap_{metric_name[i]}: {gap}')
+    for TPR in [True, False]:
+        prefix = 'TPR' if TPR else 'FPR'
+        metric_name = ['O', 'C', 'E', 'A', 'N']
+        for i in range(5):
+            xPR_0 = compute_xPR(OCEAN_preds_0[:, i], label_ocean_0[:, i], TPR=TPR)
+            xPR_1 = compute_xPR(OCEAN_preds_1[:, i], label_ocean_1[:, i], TPR=TPR)
+            gap = compute_gap(xPR_0, xPR_1)
+            wandb.log({f'{mode}_{prefix}gap_{metric_name[i]}': gap})
 
 # def equal_opportunity_metric():

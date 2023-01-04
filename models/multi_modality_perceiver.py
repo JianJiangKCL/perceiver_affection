@@ -1,6 +1,7 @@
 from typing import Iterable, Dict, List
 
 import torch
+import wandb
 from einops import rearrange, repeat
 from torch import Tensor
 from torch import nn
@@ -150,6 +151,10 @@ class MultiModalityPerceiver(nn.Module):
             x = cross_ff(x) + x
             x = latent_transformer(x) + x
         x = self.pool(x)
+        flag_large_output = 0
+        if torch.mean(x) > 100:
+            flag_large_output = 1
+        wandb.log({"flag_large_output": flag_large_output})
         return x
 
     def pool(self, x):

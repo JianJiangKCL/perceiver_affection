@@ -12,7 +12,7 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--ckpt_root", default='', type=str)
 
 	parser.add_argument("--depth", default=4, type=int)
-	parser.add_argument("--num_latents", default=16, type=int)
+	parser.add_argument("--num_latents", default=512, type=int)
 	parser.add_argument("--latent_dim", default=512, type=int)
 	parser.add_argument("--cross_heads", default=1, type=int)
 	parser.add_argument("--latent_heads", default=8, type=int)

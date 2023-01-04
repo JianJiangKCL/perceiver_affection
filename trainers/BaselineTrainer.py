@@ -3,7 +3,7 @@ import torchmetrics
 import os
 from trainers.TrainerABC import TrainerABC
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap
 import wandb
 
 
@@ -25,6 +25,8 @@ class BaselineTrainer(TrainerABC):
         pred_ocean = self.backbone(modalities_x)
         loss = self.criterion(pred_ocean, label_ocean)
         self.metrics[mode].update(pred_ocean, label_ocean)
+        if self.current_epoch > 1:
+            k=1
         metric = self.metrics[mode].compute()
         log_data = {
             f'{mode}_loss': loss,
@@ -33,7 +35,7 @@ class BaselineTrainer(TrainerABC):
         
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
-        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean}
+        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
 
         return ret
 
@@ -43,6 +45,7 @@ class BaselineTrainer(TrainerABC):
         if local_rank == 0:
             wandb.log({f'{mode}_mse': metric})
             log_DIR(outputs, mode)
+            log_gap(outputs, mode)
 
         self.metrics[mode].reset()
 

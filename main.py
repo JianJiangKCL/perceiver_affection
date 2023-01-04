@@ -15,7 +15,7 @@ import torch
 def main(args):
 
 	root_dir = save_path = f"{args.results_dir}/lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_scheduler{args.scheduler}_beta{args.beta}"
+						   f"bs{args.batch_size}_scheduler{args.scheduler}_beta{args.beta}_numlatent{args.num_latents}_latentdim_{args.latent_dim}"
 
 	os.makedirs(save_path, exist_ok=True)
 

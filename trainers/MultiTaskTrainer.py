@@ -5,7 +5,7 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap
 import wandb
 
 
@@ -42,7 +42,7 @@ class MultiTaskTrainer(TrainerABC):
 
         loss = loss_ocean + self.args.beta * loss_sen
         prefix = '' if mode == 'train' else f'{mode}_'
-        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean}
+        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
         return ret
 
     def shared_epoch_end(self, outputs, mode):
@@ -52,6 +52,7 @@ class MultiTaskTrainer(TrainerABC):
 
             wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
             log_DIR(outputs, mode)
+            log_gap(outputs, mode)
         self.metrics[mode].reset()
 
     def training_epoch_end(self, outputs):

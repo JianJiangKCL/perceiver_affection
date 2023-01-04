@@ -1,3 +1,5 @@
+import torch
+
 from datasets.data_module import NpDataset, MultiTaskDataset
 
 #######
@@ -10,8 +12,12 @@ from datasets.data_module import NpDataset, MultiTaskDataset
 
 
 # test multitask dataset
-train_dataset = MultiTaskDataset('train_text_fb.npz', ['text', 'facebody'], 'age')
-test_dataset = MultiTaskDataset('test_text_fb.npz', ['text', 'facebody'], 'age')
-data = train_dataset[0]
-test_data = test_dataset[0]
+# train_dataset = MultiTaskDataset('train_text_fb.npz', ['text', 'facebody'], 'age')
+# test_dataset = MultiTaskDataset('test_text_fb.npz', ['text', 'facebody'], 'age')
+# data = train_dataset[0]
+# test_data = test_dataset[0]
+a = torch.tensor([0.0])
+b = torch.tensor([2.0])
+t= b.pow(166)
+print(t)
 k=1
