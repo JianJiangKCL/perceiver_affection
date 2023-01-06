@@ -4,9 +4,9 @@ name: text_facebody
 # model
 arch : perceiver
 
-depth : 4
-num_latents : 16
-latent_dim : 512
+depth : 3
+num_latents : 128
+latent_dim : 128
 cross_heads : 1
 latent_heads : 8
 cross_dim_head : 64
@@ -26,7 +26,7 @@ gpus : 1
 optimizer : lamb
 scheduler : constant
 is_baseline : 1
-seed: 36
+seed: 1995
 
 
 

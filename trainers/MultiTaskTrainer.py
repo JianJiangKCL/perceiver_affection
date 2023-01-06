@@ -5,7 +5,7 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func
 import wandb
 
 
@@ -18,6 +18,7 @@ class MultiTaskTrainer(TrainerABC):
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         self.mse_loss = nn.MSELoss()
         self.cls_imbalance_loss = nn.CrossEntropyLoss()
+        self.fairness_loss1 = FairnessDistributionLoss()
         self.fairness_loss = None
 
     def shared_step(self, batch, mode):
@@ -32,15 +33,25 @@ class MultiTaskTrainer(TrainerABC):
         loss_ocean = self.mse_loss(pred_ocean, label_ocean)
         self.metrics[mode].update(pred_ocean, label_ocean)
         metric = self.metrics[mode].compute()
-        loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
+
         log_data = {
             f'{mode}_loss_ocean': loss_ocean,
-            f'{mode}_loss_sen': loss_sen,
-
         }
-        self.log_out(log_data, mode)
 
-        loss = loss_ocean + self.args.beta * loss_sen
+        loss = loss_ocean
+        if self.current_epoch == 9:
+            k = 1
+        if self.args.use_distribution_loss:
+            loss_binomial = entropy_loss_func(pred_sen)
+            loss = loss + loss_binomial * self.args.alpha
+            log_data[f'{mode}_loss_fairness'] = loss_binomial
+
+        else:
+            loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
+            loss = loss_ocean + self.args.beta * loss_sen
+            log_data[f'{mode}_loss_sen'] = loss_sen
+
+        self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
         ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
         return ret

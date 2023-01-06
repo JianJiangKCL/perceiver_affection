@@ -6,23 +6,23 @@ name: baseline_hyper
 method: grid
 parameters:
   depth:
-    values: [3, 4]
+    values: [3]
 
   num_latents:
-    values: [16]
+    values: [128]
   latent_dim:
-    values: [512]
+    values: [128]
   lr:
     values: [0.004]
 
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: ['multistep'] #, "constant"]
+    values: [ "constant"] #'multistep'] #,
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1993, 1994, 1995, 1996 , 2000]
+    values: [0, 36, 1995, 1996 , 2000]
 
   epochs:
     values: [60]

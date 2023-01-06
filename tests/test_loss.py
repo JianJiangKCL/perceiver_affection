@@ -43,3 +43,16 @@ def test_xPR():
 
 def test_binary_OCEAN():
 	pass
+
+
+def test_binomial():
+	bernoulli_distribution = torch.distributions.Bernoulli(probs=0.5)
+	binomial_dist = torch.distributions.Binomial(1, 0.5)
+	sample = binomial_dist.sample((100, 2))
+	binomial_dist = binomial_dist.log_prob(torch.arange(2)).exp()
+
+	preds = torch.randn( 5, 2)
+	softmaxed_preds = torch.softmax(preds, dim= 1)
+	k=1
+
+test_binomial()

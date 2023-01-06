@@ -4,11 +4,13 @@ import torch.nn.functional as F
 import numpy as np
 from funcs.utils_funcs import tensor_to_np
 import wandb
-
+from einops import rearrange, repeat
 
 # knowledge distillation loss
 class KnowledgeDistillationLoss(nn.Module):
     def __init__(self, T, alpha):
+        # alpha is the weight of the loss
+        # T is the temperature
         super(KnowledgeDistillationLoss, self).__init__()
         self.T = T
         self.alpha = alpha
@@ -22,6 +24,42 @@ class KnowledgeDistillationLoss(nn.Module):
 
 # fairness loss
 OCEAN_MEANS = [0.31256767999999996, 0.3745465626666666, -0.3980745346, -1.47551749, -0.20200107000000006]
+
+
+# kl divergence between predicted distribution and binomial distribution
+class FairnessDistributionLoss(nn.Module):
+    def __init__(self, T=1):
+        super(FairnessDistributionLoss, self).__init__()
+        self.T = T
+        self.kl_div = nn.KLDivLoss(reduction='batchmean')
+
+        binomial_dist = torch.distributions.Binomial(1, 0.5)
+        # [0.5, 0.5]
+        dist_prob = binomial_dist.log_prob(torch.arange(2)).exp()
+        self.dist_prob = dist_prob.cuda()
+
+    def forward(self, output):
+        output = F.softmax(output / self.T, dim=1)
+
+        # dist_prob = dist_prob / self.T # the temperature is not needed here
+        dist_prob = repeat(self.dist_prob, 'n -> b n', b=output.shape[0])
+        return self.kl_div(output, dist_prob) * (self.T ** 2)
+
+
+def entropy_loss_func(logits):
+
+    def clamp_probs(probs):
+        # avoid 0 probs to cause nan
+        eps = torch.finfo(probs.dtype).eps
+        return probs.clamp(min=eps, max=1 - eps)
+
+    probs = F.softmax(logits, dim=1)
+    probs_clamped = clamp_probs(probs)
+    logits = torch.log(probs_clamped)
+
+    p_log_p = logits * probs
+    entropy = -p_log_p.sum(-1)
+    return entropy.mean()
 
 
 # binary OCEAN values in a batch manner

@@ -1,4 +1,4 @@
-project: perceiver_affection_mtl_hyper
+project: perceiver_affection_mtl_dist_hyper
 
 
 program: main.py
@@ -27,13 +27,18 @@ parameters:
   epochs:
     values: [10, 30, 60]
 
-  beta:
-    values: [0.1, 0.5, 1.0]
+#  beta:
+#    values: [0.1, 0.5, 1.0]
+  alpha:
+    values: [0.1, 0.001, 0.005]
   finetune:
-    values: ["", "/vol/jj/proj/perceiver_affection/results/baseline/lr0.004_e60_seed36_optlamb_bs128_schedulerconstant/last.ckpt"]
+    values: ["/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
 
   is_baseline:
     values: [0]
+
+  use_distribution_loss:
+    values: [1]
 metric:
   goal: minimize
   name: test_loss
