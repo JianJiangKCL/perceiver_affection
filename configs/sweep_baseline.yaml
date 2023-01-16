@@ -25,7 +25,7 @@ parameters:
     values: [0, 36, 1995, 1996 , 2000]
 
   epochs:
-    values: [60]
+    values: [60, ]
 
   is_baseline:
     values: [1]

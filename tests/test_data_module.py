@@ -21,3 +21,11 @@ b = torch.tensor([2.0])
 t= b.pow(166)
 print(t)
 k=1
+
+data = {"a": 1, "b": 2, "c": 3}
+
+name = ['a', 'b', 'c']
+
+data_dict = {k: data[k] for k in name}
+
+l=1

@@ -47,7 +47,6 @@ class FairnessDistributionLoss(nn.Module):
 
 
 def entropy_loss_func(logits):
-
     def clamp_probs(probs):
         # avoid 0 probs to cause nan
         eps = torch.finfo(probs.dtype).eps
@@ -157,17 +156,18 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     return DIRs, SPDs
 
 
-def log_DIR(outputs, mode):
+def log_DIR(outputs, sensitive_group, mode):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
-    sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
+
+    sensitive_labels = torch.cat([output['label_sen_dict'][sensitive_group] for output in outputs])
 
     # calculate OCEAN individually
     metric_name = ['O', 'C', 'E', 'A', 'N']
     DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
     for i in range(5):
-        wandb.log({f'{mode}_DIR_{metric_name[i]}': DIRs[i]})
-        wandb.log({f'{mode}_SPD_{metric_name[i]}': SPDs[i]})
+        wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
+        wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
 
 
 # formulation of TPR
@@ -194,12 +194,12 @@ def compute_gap(R1, R0):
     return np.abs(R1 - R0)
 
 
-def log_gap(outputs, mode, TPR=True):
+def log_gap(outputs, sensitive_group, mode, TPR=True):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
     label_ocean = torch.cat([output['label_ocean'] for output in outputs])
     binary_label_ocean = get_binary_ocean_values(label_ocean, STE=False)
-    sensitive_labels = torch.cat([output['label_sen'] for output in outputs])
+    sensitive_labels = torch.cat([output['label_sen_dict'][sensitive_group] for output in outputs])
     
     OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(binary_pred_ocean, sensitive_labels)
 

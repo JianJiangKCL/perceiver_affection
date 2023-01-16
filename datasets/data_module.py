@@ -29,6 +29,7 @@ class NpDataset(Dataset):
                 data = self.transforms(data)
             modality_data.append(data)
         # return dictionary with key is modality name and value is tensor
+
         return dict(zip(self.modalities, modality_data)), self.targets[index]
 
     def __len__(self):
@@ -38,15 +39,17 @@ class NpDataset(Dataset):
 # one task is predicting OCEAN, the other is predicting sensitive label
 class MultiTaskDataset(NpDataset):
 
-    def __init__(self, data_path, modalities, sensitive_group, transforms=None):
+    def __init__(self, data_path, modalities, sensitive_groups, transforms=None):
         super().__init__(data_path, modalities, transforms)
-        self.sensitive_label = sensitive_group
+
         d = np.load(data_path)
-        self.sensitive_targets = torch.from_numpy(d[sensitive_group])
+        self.sensitive_groups = sensitive_groups
+        self.sensitive_targets_dict = {group: torch.from_numpy(d[group]) for group in sensitive_groups}
 
     def __getitem__(self, index):
         modality_data, ocean_target = super().__getitem__(index)
-        return modality_data, ocean_target, self.sensitive_targets[index]
+        sensitive_targets = {group:self.sensitive_targets_dict[group][index] for group in self.sensitive_groups}
+        return modality_data, ocean_target, sensitive_targets
 
     def __len__(self):
         return len(self.targets)

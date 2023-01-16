@@ -4,11 +4,11 @@ import os
 from torchvision.datasets import ImageFolder
 
 
-def get_loader(args, name_modalities, mode):
+def get_loader(args, name_modalities, sensitive_groups, mode):
 	dataset_path = os.path.join(args.dataset_path, f'{mode}_text_fb.npz')
 	if args.multi_task:
-		assert args.sensitive_group is not None
-		dataset = MultiTaskDataset(dataset_path, name_modalities, sensitive_group=args.sensitive_group)
+		assert args.target_sensitive_group is not None
+		dataset = MultiTaskDataset(dataset_path, name_modalities, sensitive_groups)
 	else:
 		dataset = NpDataset(dataset_path, name_modalities)
 	if mode == 'train' or mode == 'train_val':

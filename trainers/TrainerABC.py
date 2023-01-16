@@ -2,6 +2,9 @@ import pytorch_lightning as pl
 from pytorch_lightning.utilities import AttributeDict
 from funcs.module_funcs import setup_optimizer, setup_scheduler
 from models.perceiver import Perceiver
+import os
+import wandb
+from models.losses import log_DIR, log_gap
 
 
 class TrainerABC(pl.LightningModule):
@@ -33,7 +36,15 @@ class TrainerABC(pl.LightningModule):
         return ret
 
     def shared_epoch_end(self, outputs, mode):
-        pass
+        local_rank = os.getenv("LOCAL_RANK", 0)
+        metric = self.metrics[mode].compute()
+        if local_rank == 0:
+            if mode == 'val':
+                wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
+                for sensitive_group in self.sensitive_groups:
+                    log_DIR(outputs, sensitive_group, mode)
+                    log_gap(outputs, sensitive_group, mode)
+        self.metrics[mode].reset()
 
     def training_step(self, batch, batch_idx):
         ret = self.shared_step(batch, 'train')

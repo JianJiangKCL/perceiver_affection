@@ -1,4 +1,4 @@
-project: perceiver_affection_mtl_dist_hyper
+project: perceiver_affection_mtl_mix
 
 
 program: main.py
@@ -18,19 +18,19 @@ parameters:
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: ["multistep", "constant"]
+    values: ["constant"]
   optimizer:
         values: ["lamb"]
   seed:
     values: [1995]
 
   epochs:
-    values: [10, 30, 60]
+    values: [10]
 
 #  beta:
 #    values: [0.1, 0.5, 1.0]
   alpha:
-    values: [0.1, 0.001, 0.005]
+    values: [0.01, 0.99]
   finetune:
     values: ["/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
 

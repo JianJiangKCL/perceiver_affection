@@ -8,7 +8,7 @@ import wandb
 
 
 class BaselineTrainer(TrainerABC):
-    def __init__(self, args, backbone, modalities):
+    def __init__(self, args, backbone, modalities, sensitive_groups):
         super(BaselineTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
         self.train_metric = torchmetrics.MeanSquaredError()
         self.val_metric = torchmetrics.MeanSquaredError()
@@ -16,6 +16,8 @@ class BaselineTrainer(TrainerABC):
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         # define a regression loss
         self.criterion = nn.MSELoss()
+        self.target_sensitive_group = args.target_sensitive_group
+        self.sensitive_groups = sensitive_groups
         print('baseline trainer')
 
     def shared_step(self, batch, mode):
@@ -39,14 +41,14 @@ class BaselineTrainer(TrainerABC):
 
         return ret
 
-    def shared_epoch_end(self, outputs, mode):
-        local_rank = os.getenv("LOCAL_RANK", 0)
-        metric = self.metrics[mode].compute()
-        if local_rank == 0:
-            wandb.log({f'{mode}_mse': metric})
-            log_DIR(outputs, mode)
-            log_gap(outputs, mode)
-
-        self.metrics[mode].reset()
+    # def shared_epoch_end(self, outputs, mode):
+    #     local_rank = os.getenv("LOCAL_RANK", 0)
+    #     metric = self.metrics[mode].compute()
+    #     if local_rank == 0:
+    #         wandb.log({f'{mode}_mse': metric})
+    #         log_DIR(outputs, mode)
+    #         log_gap(outputs, mode)
+    #
+    #     self.metrics[mode].reset()
 
 

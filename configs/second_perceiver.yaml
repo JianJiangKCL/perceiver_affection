@@ -1,4 +1,4 @@
-project: perceiver_affection
+project: perceiver_affection_kd
 name: text_facebody
 ## general args
 # model
@@ -14,7 +14,7 @@ latent_dim_head : 64
 num_outputs : 5
 
 # train
-lr : 0.004
+lr : 0.001
 epochs : 10
 
 num_workers : 4
@@ -27,8 +27,11 @@ optimizer : lamb
 scheduler : multistep
 seed : 1995
 is_baseline : 0
+alpha : 0.5
 use_distribution_loss : 1
-alpha: 1
+
+finetune: "/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"
+
 #milestones : [84, 102, 114]
 
 

@@ -21,10 +21,10 @@ def main(args):
 
 	name_modalities = ['text', 'facebody']
 	modalities = [Modalities[name] for name in name_modalities]
-
-	train_loader = get_loader(args, name_modalities, 'train_val')
-	val_loader = get_loader(args, name_modalities, 'test')
-	test_loader = get_loader(args, name_modalities, 'test')
+	sensitive_groups = ["gender", "age"]
+	train_loader = get_loader(args, name_modalities, sensitive_groups, 'train_val')
+	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test')
+	test_loader = get_loader(args, name_modalities, sensitive_groups, 'test')
 
 	backbone = MultiModalityPerceiver(
 		modalities=modalities,
@@ -44,9 +44,9 @@ def main(args):
 	if args.finetune:
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
-	# todo ,baseline need to adjust; or simply adjust the mtl using if
+
 	Trainer = BaselineTrainer if args.is_baseline else MultiTaskTrainer
-	model = Trainer(args, backbone, name_modalities)
+	model = Trainer(args, backbone, name_modalities, sensitive_groups)
 
 	logger = None
 	if args.use_logger:
