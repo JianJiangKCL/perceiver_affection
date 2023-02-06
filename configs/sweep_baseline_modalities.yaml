@@ -1,0 +1,45 @@
+project: perceiver_affection_hyper2
+
+
+program: main.py
+name: baseline_hyper
+method: grid
+parameters:
+  depth:
+    values: [3]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.004]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: [ "constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [1995]
+  modalities:
+    values: [ text, facebody, text facebody]
+  epochs:
+    values: [60 ]
+
+  is_baseline:
+    values: [1]
+
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

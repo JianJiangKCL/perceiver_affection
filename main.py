@@ -9,17 +9,20 @@ import os
 import wandb
 from trainers.BaselineTrainer import BaselineTrainer
 from trainers.MultiTaskTrainer import MultiTaskTrainer
+from trainers.IncrementTrainer import IncrementTrainer
 import torch
+import copy
 
 
 def main(args):
-
-	root_dir = save_path = f"{args.results_dir}/lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_scheduler{args.scheduler}_beta{args.beta}_numlatent{args.num_latents}_latentdim_{args.latent_dim}"
+	name_modalities = args.modalities
+	file_prefix = '_'.join(name_modalities)
+	root_dir = save_path = f"{args.results_dir}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
+						   f"bs{args.batch_size}_beta{args.beta}"
 
 	os.makedirs(save_path, exist_ok=True)
 
-	name_modalities = ['text', 'facebody']
+
 	modalities = [Modalities[name] for name in name_modalities]
 	sensitive_groups = ["gender", "age"]
 	train_loader = get_loader(args, name_modalities, sensitive_groups, 'train_val')
@@ -45,8 +48,12 @@ def main(args):
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
 
-	Trainer = BaselineTrainer if args.is_baseline else MultiTaskTrainer
-	model = Trainer(args, backbone, name_modalities, sensitive_groups)
+	if args.is_incremental:
+		old_model = copy.deepcopy(backbone)
+		model = IncrementTrainer(args, backbone, old_model, name_modalities, sensitive_groups)
+	else:
+		Trainer = BaselineTrainer if args.is_baseline else MultiTaskTrainer
+		model = Trainer(args, backbone, name_modalities, sensitive_groups)
 
 	logger = None
 	if args.use_logger:
@@ -65,4 +72,5 @@ if __name__ == "__main__":
 	# set random seed
 	set_seed(args.seed)
 	print(args)
+
 	main(args)

@@ -1,4 +1,4 @@
-project: perceiver_affection_mtl_mix
+project: perceiver_affection_kd_from_constant
 
 
 program: main.py
@@ -16,7 +16,7 @@ parameters:
     values: [0.001, 0.004]
 
   wandb_mode:
-    values: ["offline"]
+    values: ["online"]
   scheduler:
     values: ["constant"]
   optimizer:
@@ -27,18 +27,24 @@ parameters:
   epochs:
     values: [10]
 
-#  beta:
-#    values: [0.1, 0.5, 1.0]
+  beta:
+    values: [0.1, 0.5, 1.0]
   alpha:
-    values: [0.01, 0.99]
+    values: [0.01, 0.5, 0.99]
   finetune:
-    values: ["/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
+    values: ["/vol/jj/proj/perceiver_affection/checkpoints/second_phase/lr0.001_e10_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
 
   is_baseline:
     values: [0]
 
+  is_incremental:
+    values: [1]
+
   use_distribution_loss:
     values: [1]
+
+  target_sensitive_group:
+    values: ["age"]
 metric:
   goal: minimize
   name: test_loss

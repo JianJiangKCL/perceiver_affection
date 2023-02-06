@@ -16,6 +16,7 @@ class NpDataset(Dataset):
         self.modalities = sorted(modalities)
         self.transforms = transforms
         self.targets = torch.from_numpy(d['OCEAN'])
+        self.OCEAN_mean = self.targets.mean(dim=0)
 
     def __getitem__(self, index):
 
@@ -75,6 +76,35 @@ facebody_modality = InputModality(
         max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
     )
 
+textual_modality = InputModality(
+        name='textual',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
+
+senti_modality = InputModality(
+        name='senti',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
+
+speech_modality = InputModality(
+        name='speech',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
+
+
+
 Modalities = {}
 Modalities['text'] = text_modality
 Modalities['facebody'] = facebody_modality
+Modalities['textual'] = textual_modality
+Modalities['senti'] = senti_modality
+Modalities['speech'] = speech_modality

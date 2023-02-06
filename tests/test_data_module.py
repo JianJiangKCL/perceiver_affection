@@ -1,31 +1,14 @@
-import torch
+import numpy as np
+import os
+comb_bt = np.array([1])
+comb_fb = np.array([2])
+comb_senti = np.array([3])
+comb_speech = np.array([4])
+total_modality_name = ['text', 'facebody', 'senti', 'speech']
+total_modality = [comb_bt, comb_fb, comb_senti, comb_speech]
 
-from datasets.data_module import NpDataset, MultiTaskDataset
+# gender = np.array
+# the file name is combined strings in the list
+file_name = '_'.join(total_modality_name)
 
-#######
-## test npz dataset
-# train_dataset = NpDataset('train_text_fb.npz', ['text', 'facebody'])
-#
-# val_dataset = NpDataset('validation_text_fb.npz', ['text', 'facebody'])
-# dat = train_dataset[0]
-#######
-
-
-# test multitask dataset
-# train_dataset = MultiTaskDataset('train_text_fb.npz', ['text', 'facebody'], 'age')
-# test_dataset = MultiTaskDataset('test_text_fb.npz', ['text', 'facebody'], 'age')
-# data = train_dataset[0]
-# test_data = test_dataset[0]
-a = torch.tensor([0.0])
-b = torch.tensor([2.0])
-t= b.pow(166)
-print(t)
-k=1
-
-data = {"a": 1, "b": 2, "c": 3}
-
-name = ['a', 'b', 'c']
-
-data_dict = {k: data[k] for k in name}
-
-l=1
+np.savez(os.path.join('save_path',  f'{file_name}.npz'), **dict(zip(total_modality_name, total_modality)))

@@ -10,22 +10,16 @@ import wandb
 class BaselineTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
         super(BaselineTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
-        self.train_metric = torchmetrics.MeanSquaredError()
-        self.val_metric = torchmetrics.MeanSquaredError()
-        self.test_metric = torchmetrics.MeanSquaredError()
-        self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
-        # define a regression loss
-        self.criterion = nn.MSELoss()
         self.target_sensitive_group = args.target_sensitive_group
         self.sensitive_groups = sensitive_groups
         print('baseline trainer')
 
     def shared_step(self, batch, mode):
-        x, label_ocean, label_sen = batch
+        x, label_ocean, label_sen_dict = batch
         modalities_x = {modality: x[modality] for modality in self.modalities}
         
         pred_ocean = self.backbone(modalities_x)
-        loss = self.criterion(pred_ocean, label_ocean)
+        loss = self.mse_loss(pred_ocean, label_ocean)
         self.metrics[mode].update(pred_ocean, label_ocean)
         if self.current_epoch > 1:
             k=1
@@ -37,7 +31,8 @@ class BaselineTrainer(TrainerABC):
         
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
-        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
+        ret = {f'{prefix}loss': loss, 'label_sen_dict': label_sen_dict, 'pred_ocean': pred_ocean,
+               'label_ocean': label_ocean}
 
         return ret
 

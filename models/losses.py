@@ -6,24 +6,32 @@ from funcs.utils_funcs import tensor_to_np
 import wandb
 from einops import rearrange, repeat
 
+
+global OCEAN_MEANS
+
+
+def set_ocean_means(ocean_means):
+    global OCEAN_MEANS
+    OCEAN_MEANS = ocean_means
+
+
 # knowledge distillation loss
 class KnowledgeDistillationLoss(nn.Module):
-    def __init__(self, T, alpha):
+    def __init__(self, T):
         # alpha is the weight of the loss
         # T is the temperature
         super(KnowledgeDistillationLoss, self).__init__()
         self.T = T
-        self.alpha = alpha
         self.kl_div = nn.KLDivLoss(reduction='batchmean')
 
     def forward(self, student_output, teacher_output):
         student_output = F.log_softmax(student_output / self.T, dim=1)
         teacher_output = F.softmax(teacher_output / self.T, dim=1)
-        return self.kl_div(student_output, teacher_output) * (self.T ** 2) * self.alpha
+        return self.kl_div(student_output, teacher_output) * (self.T ** 2)
 
 
 # fairness loss
-OCEAN_MEANS = [0.31256767999999996, 0.3745465626666666, -0.3980745346, -1.47551749, -0.20200107000000006]
+# OCEAN_MEANS = [0.31256767999999996, 0.3745465626666666, -0.3980745346, -1.47551749, -0.20200107000000006]
 
 
 # kl divergence between predicted distribution and binomial distribution
@@ -141,17 +149,29 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     DIRs= []
     SPDs = []
     for i in range(5):
-        #todo three divisions may have 0s.
 
         # calculate the proportion of positive predictions (y==1) for the privileged group
-        tmp = torch.sum(privileged_preds[:, i])
-        p_privileged = tmp / num_privileged
-        # calculate the proportion of positive predictions (y==1) for the unprivileged group
-        p_unprivileged = torch.sum(unprivileged_preds[:, i]) / num_unprivileged
-        disparate_impact_ratio = p_unprivileged / p_privileged
-        DIRs.append(disparate_impact_ratio)
-        statistical_parity_difference = p_unprivileged - p_privileged
-        SPDs.append(statistical_parity_difference)
+
+        if num_privileged != 0 and num_unprivileged != 0:
+            p_privileged = torch.sum(privileged_preds[:, i]) / num_privileged
+            # calculate the proportion of positive predictions (y==1) for the unprivileged group
+            p_unprivileged = torch.sum(unprivileged_preds[:, i]) / num_unprivileged
+            if p_privileged == 0:
+                p_privileged = 0.0001
+            disparate_impact_ratio = p_unprivileged / p_privileged
+
+            DIRs.append(disparate_impact_ratio)
+            statistical_parity_difference = p_unprivileged - p_privileged
+            SPDs.append(statistical_parity_difference)
+        elif num_privileged == 0 and num_unprivileged != 0:
+            # p_privileged to infinity, DIR to 0, SPD to minus infinity
+            DIRs.append(0)
+            SPDs.append(-99)
+
+        elif num_privileged != 0 and num_unprivileged == 0:
+            # p_unprivileged to infinity, DIR to infinity, SPD to infinity
+            DIRs.append(99)
+            SPDs.append(99)
 
     return DIRs, SPDs
 
@@ -213,6 +233,6 @@ def log_gap(outputs, sensitive_group, mode, TPR=True):
             xPR_0 = compute_xPR(OCEAN_preds_0[:, i], label_ocean_0[:, i], TPR=TPR)
             xPR_1 = compute_xPR(OCEAN_preds_1[:, i], label_ocean_1[:, i], TPR=TPR)
             gap = compute_gap(xPR_0, xPR_1)
-            wandb.log({f'{mode}_{prefix}gap_{metric_name[i]}': gap})
+            wandb.log({f'{sensitive_group}_{mode}_{prefix}gap_{metric_name[i]}': gap})
 
 # def equal_opportunity_metric():

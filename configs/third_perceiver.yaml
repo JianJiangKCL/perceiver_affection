@@ -24,13 +24,14 @@ distributed : False
 eval_every_n_epoch : 10
 gpus : 1
 optimizer : lamb
-scheduler : constant
+scheduler : multistep
 seed : 1995
 is_baseline : 0
 alpha : 0.5
 use_distribution_loss : 1
-
-finetune: "/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"
+is_incremental : 1
+target_sensitive_group : 'age'
+finetune: "H:/tmp_results/lr0.001_e10_seed1995_optlamb_bs128_schedulermultistep_beta0.5_numlatent128_latentdim_128/last.ckpt"
 
 #milestones : [84, 102, 114]
 

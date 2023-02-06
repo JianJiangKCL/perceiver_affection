@@ -10,33 +10,35 @@ import wandb
 
 
 class IncrementTrainer(TrainerABC):
-    def __init__(self, args, backbone, old_model, modalities):
+    def __init__(self, args, backbone, old_model, modalities, sensitive_groups):
         super(IncrementTrainer, self).__init__(args, backbone, modalities)
-        self.train_metric = torchmetrics.MeanSquaredError()
-        self.val_metric = torchmetrics.MeanSquaredError()
-        self.test_metric = torchmetrics.MeanSquaredError()
-        self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
-        self.mse_loss = nn.MSELoss()
+
         self.cls_imbalance_loss = nn.CrossEntropyLoss()
         self.fairness_loss1 = FairnessDistributionLoss()
         self.fairness_loss = None
 
+        self.knowledge_distillation_loss = KnowledgeDistillationLoss(T=1)
+        self.target_sensitive_group = args.target_sensitive_group
+        self.sensitive_groups = sensitive_groups
+        self.old_model = old_model
+        self.old_model.eval()
+
     def shared_step(self, batch, mode):
-        x, label_ocean, label_sen = batch
+        x, label_ocean, label_sen_dict = batch
+        label_sen = label_sen_dict[self.target_sensitive_group]
         label_sen = label_sen.long()
         modalities_x = {modality: x[modality] for modality in self.modalities}
 
         fv = self.backbone.extract_features(modalities_x)
 
-        old_fv = self.old_model.extract_features(modalities_x)
-
+        # don't update the old model
+        old_fv = self.old_model.extract_features(modalities_x).detach()
 
         pred_ocean = self.backbone.to_logits(fv)
         pred_sen = self.backbone.cosine_fc(fv)
 
         loss_ocean = self.mse_loss(pred_ocean, label_ocean)
         self.metrics[mode].update(pred_ocean, label_ocean)
-        metric = self.metrics[mode].compute()
 
         log_data = {
             f'{mode}_loss_ocean': loss_ocean,
@@ -45,30 +47,23 @@ class IncrementTrainer(TrainerABC):
         loss = loss_ocean
         if self.current_epoch == 9:
             k = 1
-        if self.args.use_distribution_loss:
-            loss_binomial = entropy_loss_func(pred_sen)
-            loss = loss + loss_binomial * self.args.alpha
-            log_data[f'{mode}_loss_fairness'] = loss_binomial
+        loss_binomial = entropy_loss_func(pred_sen)
+        loss = loss + 0.5 * loss_binomial * self.args.alpha
+        log_data[f'{mode}_loss_fairness'] = loss_binomial
 
-        else:
-            loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
-            loss = loss_ocean + self.args.beta * loss_sen
-            log_data[f'{mode}_loss_sen'] = loss_sen
+        loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
+        loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
+        log_data[f'{mode}_loss_sen'] = loss_sen
+
+        loss_kd = self.knowledge_distillation_loss(fv, old_fv)
+        loss = loss + self.args.beta * loss_kd
+        log_data[f'{mode}_loss_kd'] = loss_kd
 
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
-        ret = {f'{prefix}loss': loss, 'label_sen': label_sen, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
+        ret = {f'{prefix}loss': loss, 'label_sen_dict': label_sen_dict, 'pred_ocean': pred_ocean,
+               'label_ocean': label_ocean}
         return ret
-
-    def shared_epoch_end(self, outputs, mode):
-        local_rank = os.getenv("LOCAL_RANK", 0)
-        metric = self.metrics[mode].compute()
-        if local_rank == 0:
-
-            wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
-            log_DIR(outputs, mode)
-            log_gap(outputs, mode)
-        self.metrics[mode].reset()
 
     def training_epoch_end(self, outputs):
         mode = 'train'

@@ -5,6 +5,8 @@ from models.perceiver import Perceiver
 import os
 import wandb
 from models.losses import log_DIR, log_gap
+import torchmetrics
+import torch.nn as nn
 
 
 class TrainerABC(pl.LightningModule):
@@ -12,12 +14,11 @@ class TrainerABC(pl.LightningModule):
     backbone: Perceiver
     def __init__(self, args, backbone=None, modalities=None):
         super(TrainerABC, self).__init__()
-        self.train_metric = None
-        self.val_metric = None
-        self.test_metric = None
-        self.metrics = None
-        # define a regression loss
-        self.criterion = None
+        self.train_metric = torchmetrics.MeanSquaredError()
+        self.val_metric = torchmetrics.MeanSquaredError()
+        self.test_metric = torchmetrics.MeanSquaredError()
+        self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
+        self.mse_loss = nn.MSELoss()
         self.modalities = sorted(modalities)
         self.args = args
         self.backbone = backbone

@@ -2,3 +2,4 @@
 /validation_text_fb.npz
 /results/
 *.pyc
+/checkpoints/
