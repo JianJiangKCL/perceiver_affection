@@ -1,4 +1,15 @@
 from argparse import ArgumentParser
+import argparse
+
+class ParserList(argparse.Action):
+	def __call__(self, parser, namespace, values, option_string=None):
+
+		if len(values) == 1:
+			# if contains , then split
+			if ',' in values[0]:
+				values = values[0].split(',')
+
+		setattr(namespace, self.dest, values)
 
 
 def custom_args(parser: ArgumentParser):
@@ -25,5 +36,5 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--is_incremental", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--alpha", type=float, default=0.1, help='the weight of the distribution loss')
 	parser.add_argument("--use_distribution_loss", choices=[0, 1], type=int, default=0)
-	parser.add_argument("--modalities", nargs='+', default=['text', 'facebody'], help='the modalities to be used')
+	parser.add_argument("--modalities", nargs='+', default=['text', 'facebody'], help='the modalities to be used', action=ParserList)
 

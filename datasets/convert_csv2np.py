@@ -36,7 +36,8 @@ def convert_data(data_path, mode, save_path):
 	labels = ['OPENMINDEDNESS_Z', 'CONSCIENTIOUSNESS_Z', 'EXTRAVERSION_Z', 'AGREEABLENESS_Z', 'NEGATIVEEMOTIONALITY_Z']
 
 	# path = os.path.join(data_path, f'{mode}_data.csv')
-	path = os.path.join(data_path, f'fb_bt_senti_speec_{mode}.csv')
+	# path = os.path.join(data_path, f'fb_bt_senti_speec_{mode}.csv')
+	path = os.path.join(data_path, f'audi_sent_spee_talk_time_fb_bt_{mode}.csv')
 	data = pd.read_csv(path)
 
 	gender = data.gender.to_numpy()
@@ -63,16 +64,26 @@ def convert_data(data_path, mode, save_path):
 	# comb_fb = np.array(comb.drop([*Bt_drop_cols], axis=1)).astype(np.float32)
 	Bt_keep_cols = [(f'{i}_bt') for i in range(0, 512)]
 	Fb_keep_cols = [(f'{i}_fb') for i in range(0, 552)]
+	audio_keep_cols = [(f'audi_{i}') for i in range(0, 59)]
 	# starts with senti_
-	senti_keep_cols = [col for col in comb.columns if col.startswith('senti_')]
+	# senti_keep_cols = [col for col in comb.columns if col.startswith('senti_')]
+	senti_keep_cols = [col for col in comb.columns if col.startswith('sent_')]
 	# starts with speec_
-	speech_keep_cols = [col for col in comb.columns if col.startswith('speec_')]
+	# speech_keep_cols = [col for col in comb.columns if col.startswith('speec_')]
+	speech_keep_cols = [col for col in comb.columns if col.startswith('spee_')]
+	# starts with time_
+	time_keep_cols = [col for col in comb.columns if col.startswith('time_')]
+	# starts with talk_
+	talk_keep_cols = [col for col in comb.columns if col.startswith('talk_')]
 	comb_bt = np.array(comb[Bt_keep_cols]).astype(np.float32)
 	comb_fb = np.array(comb[Fb_keep_cols]).astype(np.float32)
+	com_audio = np.array(comb[audio_keep_cols]).astype(np.float32)
 	comb_senti = np.array(comb[senti_keep_cols]).astype(np.float32)
 	comb_speech = np.array(comb[speech_keep_cols]).astype(np.float32)
-	total_modality_name = ['text', 'facebody', 'senti', 'speech']
-	total_modality = [comb_bt, comb_fb, comb_senti, comb_speech]
+	comb_time = np.array(comb[time_keep_cols]).astype(np.float32)
+	comb_talk = np.array(comb[talk_keep_cols]).astype(np.float32)
+	total_modality_name = ['text', 'facebody', 'senti', 'speech', 'audio', 'time', 'talk']
+	total_modality = [comb_bt, comb_fb, comb_senti, comb_speech, com_audio, comb_time, comb_talk]
 	file_name = '_'.join(total_modality_name)
 	# gender = np.array
 	file_name = os.path.join(save_path, f'{mode}_{file_name}.npz')
@@ -101,25 +112,24 @@ def main(args):
 	train_file_name = convert_data(data_path, 'train', save_path)
 
 	val_file_name = convert_data(data_path, 'validation', save_path)
-	test_file_name = convert_data(data_path, 'test', save_path)
-
+	#
+	#
 	data = np.load(train_file_name)
 	train_val_data = np.load(val_file_name)
 	age = data['age']
 	val_age = train_val_data['age']
 	k=1
+	test_file_name = convert_data(data_path, 'test', save_path)
 	##################################
 	# combine train and validation data
-	suffix = train_file_name.split('\\')[-1].split('train_')[-1]
-	combine_train_val(train_file_name, val_file_name, os.path.join(save_path, f'train_val_{suffix}'))
-	# load the combined data
-	train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
-	train_val_age = train_val_data['age']
+	# suffix = train_file_name.split('\\')[-1].split('train_')[-1]
+	# combine_train_val(train_file_name, val_file_name, os.path.join(save_path, f'train_val_{suffix}'))
+	# # load the combined data
+	# train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
+	# train_val_age = train_val_data['age']
 
 	##################################
 	k=1
-
-
 
 
 if __name__ == "__main__":

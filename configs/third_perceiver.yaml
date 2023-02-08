@@ -1,4 +1,4 @@
-project: perceiver_affection_kd_from_constant
+project: perceiver_affection_different_modality
 name: text_facebody
 ## general args
 # model
@@ -31,8 +31,8 @@ alpha : 0.5
 use_distribution_loss : 1
 is_incremental : 1
 target_sensitive_group : 'age'
-finetune: "H:/tmp_results/lr0.001_e10_seed1995_optlamb_bs128_schedulermultistep_beta0.5_numlatent128_latentdim_128/last.ckpt"
-
+#finetune: "H:/tmp_results/lr0.001_e10_seed1995_optlamb_bs128_schedulermultistep_beta0.5_numlatent128_latentdim_128/last.ckpt"
+finetune: "/vol/jj/proj/perceiver_affection/results/second/text_facebody_lr0.001_e10_seed1995_optlamb_bs128_beta0.5/last.ckpt"
 #milestones : [84, 102, 114]
 
 

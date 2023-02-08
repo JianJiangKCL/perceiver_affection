@@ -24,6 +24,8 @@ def main(args):
 
 
 	modalities = [Modalities[name] for name in name_modalities]
+	print(f"modalities: {modalities}")
+	return 0
 	sensitive_groups = ["gender", "age"]
 	train_loader = get_loader(args, name_modalities, sensitive_groups, 'train_val')
 	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test')

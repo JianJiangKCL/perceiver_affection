@@ -100,11 +100,36 @@ speech_modality = InputModality(
         max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
     )
 
+audio_modality = InputModality(
+        name='audio',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
 
+time_modality = InputModality(
+        name='time',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
+
+talkturn_modality = InputModality(
+        name='talkturn',
+        input_channels=1,  # number of channels for each token of the input
+        input_axis=1,
+        num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
+        max_freq=8.,  # maximum frequency, hyperparameter depending on how fine the data is
+    )
 
 Modalities = {}
 Modalities['text'] = text_modality
 Modalities['facebody'] = facebody_modality
-Modalities['textual'] = textual_modality
+# Modalities['textual'] = textual_modality
 Modalities['senti'] = senti_modality
 Modalities['speech'] = speech_modality
+Modalities['audio'] = audio_modality
+Modalities['time'] = time_modality
+Modalities['talkturn'] = talkturn_modality

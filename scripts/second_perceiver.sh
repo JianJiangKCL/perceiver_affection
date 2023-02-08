@@ -7,7 +7,7 @@ cd ..
 SAVE_PATH='results/second'
 
 
-GPU_ID=1
+GPU_ID=2
 DATASET_PATH=''
 
 

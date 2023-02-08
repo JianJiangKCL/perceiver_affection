@@ -27,7 +27,7 @@ optimizer : lamb
 scheduler : constant
 is_baseline : 1
 seed: 1995
-
+#modalities: [text, facebody, senti, speech]
 
 
 

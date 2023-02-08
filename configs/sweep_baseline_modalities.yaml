@@ -1,7 +1,8 @@
-project: perceiver_affection_hyper2
+#project: perceiver_affection_different_modality
+#program: main.py
+project: tmp
+program: tmp.py
 
-
-program: main.py
 name: baseline_hyper
 method: grid
 parameters:
@@ -24,7 +25,8 @@ parameters:
   seed:
     values: [1995]
   modalities:
-    values: [ text, facebody, text facebody]
+#    values: [ text, facebody, text facebody]
+    values: [ "text", "facebody", "audio", "senti", "speech", "time", "talkturn", "text,facebody", "text,facebody,audio", "text,facebody,audio,senti", "text,facebody,audio,senti,speech", "text,facebody,audio,senti,speech,time", "text,facebody,audio,senti,speech,time,talkturn"]
   epochs:
     values: [60 ]
 
