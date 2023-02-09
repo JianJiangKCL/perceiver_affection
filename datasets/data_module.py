@@ -117,7 +117,7 @@ time_modality = InputModality(
     )
 
 talkturn_modality = InputModality(
-        name='talkturn',
+        name='talk',
         input_channels=1,  # number of channels for each token of the input
         input_axis=1,
         num_freq_bands=6,  # number of freq bands, with original value (2 * K + 1)
@@ -132,4 +132,4 @@ Modalities['senti'] = senti_modality
 Modalities['speech'] = speech_modality
 Modalities['audio'] = audio_modality
 Modalities['time'] = time_modality
-Modalities['talkturn'] = talkturn_modality
+Modalities['talk'] = talkturn_modality

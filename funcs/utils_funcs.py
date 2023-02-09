@@ -8,6 +8,7 @@ import yaml
 import re
 import logging
 from functools import wraps
+import dynamic_yaml
 
 
 class Namespace(object):
@@ -34,13 +35,18 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
+# def load_yaml_(args):
+#     with open(args.config_file, 'r') as f:
+#         for key, value in Namespace(yaml.load(f, Loader=yaml.FullLoader)).__dict__.items():
+#             vars(args)[key] = value
+
 def load_yaml_(args):
     with open(args.config_file, 'r') as f:
-        for key, value in Namespace(yaml.load(f, Loader=yaml.FullLoader)).__dict__.items():
+        for key, value in Namespace(dynamic_yaml.load(f)).__dict__.items():
             vars(args)[key] = value
 
 
-# dynamic adjust values of args
+# dynamic adjust values of args, support int, float, bool, str, list
 def load_temp_(args):
     def list2dict(l):
         d = {}
@@ -61,6 +67,16 @@ def load_temp_(args):
                 vars(args)[k] = bool(v)
             elif type_v == str:
                 vars(args)[k] = str(v)
+            elif type_v == list:
+                # for nargs='+'
+                print(k, v)
+                if ',' in v:
+                    vars(args)[k] = v.split(',')
+                else:
+                    vars(args)[k] = [v]
+
+
+
 
 
 def config_logging(log_file='imgnet_log.txt', resume=False):

@@ -2,7 +2,8 @@ project: perceiver_affection_different_modality2
 program: main.py
 #project: tmp
 #program: tmp.py
-
+controller:
+  type: local
 name: baseline
 method: grid
 parameters:
@@ -17,23 +18,23 @@ parameters:
     values: [0.004]
 
   wandb_mode:
-    values: ["online"]
+    values: ["offline"]
   scheduler:
     values: [ "constant"]
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1995]
+    values: [1996, 1997, 0]
   modalities:
 #    values: [ text, facebody, text facebody]
-    values: [ "text", "facebody", "audio", "text,facebody", "text,facebody,audio", "text,facebody,audio", "text,facebody,audio,senti,speech,time", "senti,speech,time", ]
+    values: [ "text", "facebody", "audio", "text,facebody", "text,facebody,audio", "text,facebody,audio", "text,facebody,audio,senti,speech,time", "text,facebody,audio,senti,speech,time,talk", "senti,speech,time", "senti,speech,time,talk" ]
   epochs:
-    values: [40]
+    values: [30]
 
   is_baseline:
     values: [1]
 
-#40 epoch don't consider the talk
+#30 epoch don't consider the talk
 
 metric:
   goal: minimize

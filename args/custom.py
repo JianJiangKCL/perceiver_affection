@@ -1,13 +1,18 @@
 from argparse import ArgumentParser
 import argparse
 
+# it cannot be triggered in normal yaml setting,
+# because yaml replace the values of args, rather than assign values to args during parsing
+# so this is only valid for sweep yaml setting which assign values to args
 class ParserList(argparse.Action):
 	def __call__(self, parser, namespace, values, option_string=None):
-
+		# when nargs='+' is used, values is a list
+		# if isinstance(values, str):
+		# 	values = values.split('_')
 		if len(values) == 1:
 			# if contains , then split
-			if ',' in values[0]:
-				values = values[0].split(',')
+			if '_' in values[0]:
+				values = values[0].split('_')
 
 		setattr(namespace, self.dest, values)
 

@@ -1,5 +1,5 @@
-project: perceiver_affection_different_modality
-name: text_facebody
+project: perceiver_affection_different_modality2
+name: second
 ## general args
 # model
 arch : perceiver
@@ -31,7 +31,10 @@ alpha : 0.5
 use_distribution_loss : 1
 
 #finetune: "/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"
-finetune: "/vol/jj/proj/perceiver_affection/results/baseline/text_facebody_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
+#finetune: "/vol/jj/proj/perceiver_affection/results/baseline/text_facebody_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
+modalities: [text,facebody,audio]
+finetune: "/vol/jj/proj/perceiver_affection/results/xxx_lr0.004_e40_seed{seed}_optlamb_bs128_beta0.5/last.ckpt"
+
 #milestones : [84, 102, 114]
 
 
