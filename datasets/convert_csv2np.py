@@ -127,6 +127,9 @@ def main(args):
 	# # load the combined data
 	# train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
 	# train_val_age = train_val_data['age']
+	#combine val and test data
+	suffix = val_file_name.split('\\')[-1].split('validation_')[-1]
+	combine_train_val(val_file_name, test_file_name, os.path.join(save_path, f'validation_test_{suffix}'))
 
 	##################################
 	k=1

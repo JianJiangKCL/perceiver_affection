@@ -1,4 +1,4 @@
-project: perceiver_affection_mtl_mix
+project: perceiver_affection_hyper_mtl_trainval
 
 
 program: main.py
@@ -6,17 +6,17 @@ name: mtl_seed
 method: grid
 parameters:
   depth:
-    values: [3]
+    values: [5]
 
   num_latents:
-    values: [128]
+    values: [256]
   latent_dim:
     values: [128]
   lr:
-    values: [0.001, 0.004]
+    values: [0.004]
 
   wandb_mode:
-    values: ["offline"]
+    values: ["online"]
   scheduler:
     values: ["constant"]
   optimizer:
@@ -25,19 +25,32 @@ parameters:
     values: [1995]
 
   epochs:
-    values: [10]
+    values: [25]
 
 #  beta:
 #    values: [0.1, 0.5, 1.0]
   alpha:
-    values: [0.01, 0.99]
+    values: [0.99]
+#  finetune:
+#    values: ["/vol/jj/proj/perceiver_affection/results/new_checkpoints2/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"]
+#
+#  modalities:
+#    values: ["text_facebody_audio"]
   finetune:
-    values: ["/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
+    values: [ "/home/rootuser/proj/perceiver_affection/results/first/xxx_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt" ]
 
+  modalities:
+#    values: [ "text_facebody_audio", "text_audio_senti_speech_time"]
+    values: ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_facebody_audio_senti_speech_time", "text_facebody_senti_speech_time", "text_audio_senti_speech_time"]
   is_baseline:
     values: [0]
 
   use_distribution_loss:
+    values: [1]
+
+  results_dir:
+    values: ["results/sweep_mtl_trainval_devicebul"]
+  eval_every_n_epoch:
     values: [1]
 metric:
   goal: minimize

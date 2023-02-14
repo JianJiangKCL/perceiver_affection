@@ -1,11 +1,11 @@
-project: perceiver_affection_different_modality2
+project: perceiver_affection_hyper_mtl_trainval
 name: second
 ## general args
 # model
 arch : perceiver
 
-depth : 3
-num_latents : 128
+depth : 5
+num_latents : 256
 latent_dim : 128
 cross_heads : 1
 latent_heads : 8
@@ -14,7 +14,7 @@ latent_dim_head : 64
 num_outputs : 5
 
 # train
-lr : 0.001
+lr : 0.004
 epochs : 10
 
 num_workers : 4
@@ -27,16 +27,13 @@ optimizer : lamb
 scheduler : constant
 seed : 1995
 is_baseline : 0
-alpha : 0.5
+alpha : 0.99
 use_distribution_loss : 1
 
-#finetune: "/vol/jj/proj/perceiver_affection/checkpoints/lr0.004_e60_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"
-#finetune: "/vol/jj/proj/perceiver_affection/results/baseline/text_facebody_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
-modalities: [text,facebody,audio]
-finetune: "/vol/jj/proj/perceiver_affection/results/xxx_lr0.004_e40_seed{seed}_optlamb_bs128_beta0.5/last.ckpt"
+modalities: [text_facebody_audio]
+#finetune: "/vol/jj/proj/perceiver_affection/results/new_checkpoints2/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
 
-#milestones : [84, 102, 114]
-
+finetune: "/home/rootuser/proj/perceiver_affection/results/checkpoint/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
 
 
 

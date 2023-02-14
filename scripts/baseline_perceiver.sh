@@ -4,12 +4,10 @@
 
 cd ..
 
-SAVE_PATH='results/baseline'
+SAVE_PATH='results/new_checkpoints'
 
 
-GPU_ID=2
-DATASET_PATH=''
-
+GPU_ID=0
 
 CONFIG='configs/perceiver_baseline.yaml'
 

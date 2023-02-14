@@ -1,4 +1,4 @@
-project: perceiver_affection_kd_from_constant
+project: perceiver_affection_kd_trainval
 
 
 program: main.py
@@ -6,10 +6,10 @@ name: mtl_seed
 method: grid
 parameters:
   depth:
-    values: [3]
+    values: [5]
 
   num_latents:
-    values: [128]
+    values: [256]
   latent_dim:
     values: [128]
   lr:
@@ -25,14 +25,17 @@ parameters:
     values: [1995]
 
   epochs:
-    values: [10]
+    values: [5, 10, 20]
 
   beta:
     values: [0.1, 0.5, 1.0]
   alpha:
-    values: [0.01, 0.5, 0.99]
+    values: [0.99]
   finetune:
-    values: ["/vol/jj/proj/perceiver_affection/checkpoints/second_phase/lr0.001_e10_seed1995_optlamb_bs128_schedulerconstant_beta0.5_numlatent128_latentdim_128/last.ckpt"]
+    values: ["/home/rootuser/proj/perceiver_affection/results/sweep_mtl_trainval_devicebul/text_facebody_audio_lr0.004_e25_seed1995_optlamb_bs128_beta0.5_alpha_0.99/last.ckpt"]
+
+  modalities:
+    values: ["text_facebody_audio"]
 
   is_baseline:
     values: [0]
@@ -45,6 +48,12 @@ parameters:
 
   target_sensitive_group:
     values: ["age"]
+
+  results_dir:
+    values: ["results/sweep_mtl_trainval/third"]
+
+  batch_size:
+    values: [128]
 metric:
   goal: minimize
   name: test_loss

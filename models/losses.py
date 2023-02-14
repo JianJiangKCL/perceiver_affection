@@ -127,52 +127,88 @@ def separate_binary_label_group(to_separate, labels):
 # preds come in a batch manner, so the size is [batch_size, 5]
 # the sensitive_labels is [batch_size]
 # DIR close to 1; SPD close to 0
-def DIR_metric(OCEAN_bin_preds, sensitive_labels):
+# def DIR_metric(OCEAN_bin_preds, sensitive_labels):
+#
+#     OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, sensitive_labels)
+#     num_1 = len(OCEAN_preds_1)
+#     num_0 = len(OCEAN_preds_0)
+#     if num_1 > num_0:
+#         privileged_preds = OCEAN_preds_1
+#         unprivileged_preds = OCEAN_preds_0
+#         num_privileged = num_1
+#         num_unprivileged = num_0
+#     else:
+#         privileged_preds = OCEAN_preds_0
+#         unprivileged_preds = OCEAN_preds_1
+#         num_privileged = num_0
+#         num_unprivileged = num_1
+#
+#     num_privileged = torch.tensor(num_privileged).float()
+#     num_unprivileged = torch.tensor(num_unprivileged).float()
+#     # iter over the 5 OCEAN features
+#     DIRs= []
+#     SPDs = []
+#     for i in range(5):
+#
+#         # calculate the proportion of positive predictions (y==1) for the privileged group
+#
+#         if num_privileged != 0 and num_unprivileged != 0:
+#             p_privileged = torch.sum(privileged_preds[:, i]) / num_privileged
+#             # calculate the proportion of positive predictions (y==1) for the unprivileged group
+#             p_unprivileged = torch.sum(unprivileged_preds[:, i]) / num_unprivileged
+#             if p_privileged == 0:
+#                 p_privileged = 0.0001
+#             disparate_impact_ratio = p_unprivileged / p_privileged
+#
+#             DIRs.append(disparate_impact_ratio)
+#             statistical_parity_difference = p_unprivileged - p_privileged
+#             SPDs.append(statistical_parity_difference)
+#         elif num_privileged == 0 and num_unprivileged != 0:
+#             # p_privileged to infinity, DIR to 0, SPD to minus infinity
+#             DIRs.append(0)
+#             SPDs.append(-99)
+#
+#         elif num_privileged != 0 and num_unprivileged == 0:
+#             # p_unprivileged to infinity, DIR to infinity, SPD to infinity
+#             DIRs.append(99)
+#             SPDs.append(99)
+#
+#     return DIRs, SPDs
 
+
+def DIR_metric(OCEAN_bin_preds, sensitive_labels):
+    # two groups based on the sensitive labels
     OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, sensitive_labels)
     num_1 = len(OCEAN_preds_1)
     num_0 = len(OCEAN_preds_0)
-    if num_1 > num_0:
-        privileged_preds = OCEAN_preds_1
-        unprivileged_preds = OCEAN_preds_0
-        num_privileged = num_1
-        num_unprivileged = num_0
-    else:
-        privileged_preds = OCEAN_preds_0
-        unprivileged_preds = OCEAN_preds_1
-        num_privileged = num_0
-        num_unprivileged = num_1
 
-    num_privileged = torch.tensor(num_privileged).float()
-    num_unprivileged = torch.tensor(num_unprivileged).float()
+    num_0 = torch.tensor(num_0).float()
+    num_1 = torch.tensor(num_1).float()
     # iter over the 5 OCEAN features
     DIRs= []
     SPDs = []
     for i in range(5):
 
         # calculate the proportion of positive predictions (y==1) for the privileged group
+        p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+        p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+        if p_0 >= p_1:
+            p_privileged = p_0
+            p_unprivileged = p_1
+        else:
+            p_privileged = p_1
+            p_unprivileged = p_0
+        if p_privileged == 0:  # so p_unprivileged is also 0
 
-        if num_privileged != 0 and num_unprivileged != 0:
-            p_privileged = torch.sum(privileged_preds[:, i]) / num_privileged
-            # calculate the proportion of positive predictions (y==1) for the unprivileged group
-            p_unprivileged = torch.sum(unprivileged_preds[:, i]) / num_unprivileged
-            if p_privileged == 0:
-                p_privileged = 0.0001
+            disparate_impact_ratio = -1
+            DIRs.append(disparate_impact_ratio)
+            statistical_parity_difference = -1
+            SPDs.append(statistical_parity_difference)
+        else:
             disparate_impact_ratio = p_unprivileged / p_privileged
-
             DIRs.append(disparate_impact_ratio)
             statistical_parity_difference = p_unprivileged - p_privileged
             SPDs.append(statistical_parity_difference)
-        elif num_privileged == 0 and num_unprivileged != 0:
-            # p_privileged to infinity, DIR to 0, SPD to minus infinity
-            DIRs.append(0)
-            SPDs.append(-99)
-
-        elif num_privileged != 0 and num_unprivileged == 0:
-            # p_unprivileged to infinity, DIR to infinity, SPD to infinity
-            DIRs.append(99)
-            SPDs.append(99)
-
     return DIRs, SPDs
 
 

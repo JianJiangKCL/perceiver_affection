@@ -1,6 +1,6 @@
 from torch import optim
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
-from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
+# from pl_bolts.optimizers.lr_scheduler import LinearWarmupCosineAnnealingLR
 from models.optimizers import Lamb
 
 
@@ -23,8 +23,10 @@ def setup_scheduler(args, opt, milestones=None):
 		scheduler = CosineAnnealingLR(opt, args.epochs, eta_min=1e-5)
 		scheduler_interval = 'step'
 	elif args.scheduler == 'warm_cosine':
-		scheduler = LinearWarmupCosineAnnealingLR(opt, warmup_epochs=args.warmup_epochs, max_epochs=args.epochs, eta_min=1e-5)
-		scheduler_interval = 'step'
+		# scheduler = LinearWarmupCosineAnnealingLR(opt, warmup_epochs=args.warmup_epochs, max_epochs=args.epochs, eta_min=1e-5)
+		# scheduler_interval = 'step'
+		raise NotImplementedError
+
 	elif args.scheduler == 'multistep':
 
 		op_multi = lambda a, b: int(a * b)

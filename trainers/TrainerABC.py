@@ -17,6 +17,7 @@ class TrainerABC(pl.LightningModule):
         self.train_metric = torchmetrics.MeanSquaredError()
         self.val_metric = torchmetrics.MeanSquaredError()
         self.test_metric = torchmetrics.MeanSquaredError()
+        self.classification_metrics = None
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         self.mse_loss = nn.MSELoss()
         self.modalities = sorted(modalities)
@@ -46,6 +47,8 @@ class TrainerABC(pl.LightningModule):
                     log_DIR(outputs, sensitive_group, mode)
                     log_gap(outputs, sensitive_group, mode)
         self.metrics[mode].reset()
+        if self.classification_metrics is not None:
+            self.classification_metrics[mode].reset()
 
     def training_step(self, batch, batch_idx):
         ret = self.shared_step(batch, 'train')

@@ -23,7 +23,7 @@ def main(args):
 	print(f"modalities: {name_modalities}")
 	file_prefix = '_'.join(name_modalities)
 	root_dir = save_path = f"{args.results_dir}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_beta{args.beta}"
+						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}"
 
 	os.makedirs(save_path, exist_ok=True)
 
@@ -31,9 +31,9 @@ def main(args):
 	modalities = [Modalities[name] for name in name_modalities]
 
 	sensitive_groups = ["gender", "age"]
-	train_loader = get_loader(args, name_modalities, sensitive_groups, 'train_val')
-	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test')
-	test_loader = get_loader(args, name_modalities, sensitive_groups, 'test')
+	train_loader = get_loader(args, name_modalities, sensitive_groups,  'train_val') #'train')#
+	val_loader = get_loader(args, name_modalities, sensitive_groups, 'validation') #'validation_test')
+	test_loader = get_loader(args, name_modalities, sensitive_groups, 'validation') #'validation_test')
 
 	backbone = MultiModalityPerceiver(
 		modalities=modalities,

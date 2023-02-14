@@ -13,9 +13,14 @@ class MultiTaskTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
         super(MultiTaskTrainer, self).__init__(args, backbone, modalities)
         self.train_metric = torchmetrics.MeanSquaredError()
+        
         self.val_metric = torchmetrics.MeanSquaredError()
         self.test_metric = torchmetrics.MeanSquaredError()
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
+        self.train_class_acc = torchmetrics.Accuracy()
+        self.val_class_acc = torchmetrics.Accuracy()
+        self.test_class_acc = torchmetrics.Accuracy()
+        self.classification_metrics = {'train': self.train_class_acc, 'val': self.val_class_acc, 'test': self.test_class_acc}
         self.mse_loss = nn.MSELoss()
         self.cls_imbalance_loss = nn.CrossEntropyLoss()
         self.fairness_loss1 = FairnessDistributionLoss()
@@ -49,6 +54,9 @@ class MultiTaskTrainer(TrainerABC):
         log_data[f'{mode}_loss_fairness'] = loss_binomial
 
         loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
+        self.classification_metrics[mode].update(pred_sen, label_sen)
+        class_acc = self.classification_metrics[mode].compute()
+        log_data[f'{mode}_class_acc'] = class_acc
         loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
         log_data[f'{mode}_loss_sen'] = loss_sen
         # if self.args.use_distribution_loss:
@@ -66,16 +74,7 @@ class MultiTaskTrainer(TrainerABC):
         ret = {f'{prefix}loss': loss, 'label_sen_dict': label_sen_dict, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
         return ret
 
-    # def shared_epoch_end(self, outputs, mode):
-    #     local_rank = os.getenv("LOCAL_RANK", 0)
-    #     metric = self.metrics[mode].compute()
-    #     if local_rank == 0:
-    #         if mode == 'val':
-    #             wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
-    #             for sensitive_group in self.target_sensitive_group:
-    #                 log_DIR(outputs, sensitive_group, mode)
-    #                 log_gap(outputs, sensitive_group, mode)
-    #     self.metrics[mode].reset()
+
 
     def training_epoch_end(self, outputs):
         mode = 'train'
@@ -84,6 +83,7 @@ class MultiTaskTrainer(TrainerABC):
         if local_rank == 0:
             print(f'{mode}_metric: {metric}')
         self.metrics[mode].reset()
+        self.classification_metrics[mode].reset()
 
 
 

@@ -16,7 +16,10 @@ class IncrementTrainer(TrainerABC):
         self.cls_imbalance_loss = nn.CrossEntropyLoss()
         self.fairness_loss1 = FairnessDistributionLoss()
         self.fairness_loss = None
-
+        self.train_class_acc = torchmetrics.Accuracy()
+        self.val_class_acc = torchmetrics.Accuracy()
+        self.test_class_acc = torchmetrics.Accuracy()
+        self.classification_metrics = {'train': self.train_class_acc, 'val': self.val_class_acc, 'test': self.test_class_acc}
         self.knowledge_distillation_loss = KnowledgeDistillationLoss(T=1)
         self.target_sensitive_group = args.target_sensitive_group
         self.sensitive_groups = sensitive_groups
@@ -55,6 +58,10 @@ class IncrementTrainer(TrainerABC):
         loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
         log_data[f'{mode}_loss_sen'] = loss_sen
 
+        self.classification_metrics[mode].update(pred_sen, label_sen)
+        class_acc = self.classification_metrics[mode].compute()
+        log_data[f'{mode}_class_acc'] = class_acc
+
         loss_kd = self.knowledge_distillation_loss(fv, old_fv)
         loss = loss + self.args.beta * loss_kd
         log_data[f'{mode}_loss_kd'] = loss_kd
@@ -72,6 +79,7 @@ class IncrementTrainer(TrainerABC):
         if local_rank == 0:
             print(f'{mode}_metric: {metric}')
         self.metrics[mode].reset()
+        self.classification_metrics[mode].reset()
 
 
 

@@ -1,20 +1,20 @@
-project: perceiver_affection_hyper2
-
+project: perceiver_affection_hyper_trainval
 
 program: main.py
 name: baseline_hyper
 method: grid
 parameters:
   depth:
-    values: [3]
+    values: [5]
 
   num_latents:
-    values: [128]
+    values: [256]
   latent_dim:
     values: [128]
   lr:
     values: [0.004]
-
+  modalities:
+    values: [ "text_facebody_audio"]
   wandb_mode:
     values: ["online"]
   scheduler:
@@ -22,13 +22,16 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
-    values: [0, 36, 1995, 1996 , 2000]
+    values: [1995]
 
   epochs:
-    values: [60, ]
+    values: [60]
 
   is_baseline:
     values: [1]
+
+  results_dir:
+    values: ["results/new_checkpoints2"]
 
 
 metric:
