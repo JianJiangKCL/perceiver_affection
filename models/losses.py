@@ -97,9 +97,10 @@ def get_binary_ocean_values(ocean_values, STE=True):
     #                                 1 if ocean_values[i][3] > OCEAN_MEANS[3] else 0,
     #                                 1 if ocean_values[i][4] > OCEAN_MEANS[4] else 0])
 
-    binary_ocean_values = torch.tensor(binary_ocean_values)
+
     if STE:
         # this is derivative.
+        binary_ocean_values = torch.tensor(binary_ocean_values).cuda()
         ret = original_ocean_values + (binary_ocean_values - original_ocean_values).detach()
     else:
         # this is not derivative.
@@ -224,6 +225,31 @@ def log_DIR(outputs, sensitive_group, mode):
     for i in range(5):
         wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
         wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
+
+
+def SPD_loss(pred_ocean, label_sen):
+
+    OCEAN_bin_preds = get_binary_ocean_values(pred_ocean, STE=True)
+
+    OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, label_sen)
+    num_1 = len(OCEAN_preds_1)
+    num_0 = len(OCEAN_preds_0)
+
+    num_0 = torch.tensor(num_0).float()
+    num_1 = torch.tensor(num_1).float()
+    # iter over the 5 OCEAN features
+    SPDs = []
+    for i in range(5):
+
+        # calculate the proportion of positive predictions (y==1) for the privileged group
+        p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+        p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+
+        # mean squared error
+        statistical_parity_difference = (p_0 - p_1) ** 2
+        SPDs.append(statistical_parity_difference)
+
+    return torch.mean(torch.stack(SPDs))
 
 
 # formulation of TPR

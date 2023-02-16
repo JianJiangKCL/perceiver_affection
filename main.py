@@ -23,7 +23,7 @@ def main(args):
 	print(f"modalities: {name_modalities}")
 	file_prefix = '_'.join(name_modalities)
 	root_dir = save_path = f"{args.results_dir}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}"
+						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}_gamma_{args.gamma}"
 
 	os.makedirs(save_path, exist_ok=True)
 

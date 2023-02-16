@@ -1,4 +1,4 @@
-project: perceiver_affection_hyper_trainval
+project: perceiver_affection_baseline_trainval_bul
 program: main.py
 #project: tmp
 #program: tmp.py
@@ -27,16 +27,16 @@ parameters:
   modalities:
     #[
     values:
-     ["text_senti_speech_time", "facebody_audio", "facebody_audio_senti_speech_time", "facebody_senti_speech_time", "audio_senti_speech_time"]
-    #["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_facebody_audio_senti_speech_time", "text_facebody_senti_speech_time","text_audio_senti_speech_time"]
+    # comment out the following line to run all modalities
+      ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
   epochs:
-    values: [60]
+    values: [60, 100]
 
   is_baseline:
     values: [1]
 
   results_dir:
-    values: ["results/trainval"]
+    values: ["results/trainval_bul"]
 
 #40 epoch don't consider the talk
 

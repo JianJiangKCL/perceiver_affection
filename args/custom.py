@@ -39,7 +39,8 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--target_sensitive_group", default='gender', type=str)
 	parser.add_argument("--is_baseline", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--is_incremental", choices=[0, 1], type=int, default=0)
-	parser.add_argument("--alpha", type=float, default=0.1, help='the weight of the distribution loss')
+	parser.add_argument("--alpha", type=float, default=0.1, help='the weight of the two distribution losses')
 	parser.add_argument("--use_distribution_loss", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--modalities", nargs='+', default=['text', 'facebody'], help='the modalities to be used', action=ParserList)
+	parser.add_argument("--gamma", type=float, default=1, help='the weight of total distribution loss')
 

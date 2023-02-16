@@ -3,12 +3,15 @@ import wandb
 api = wandb.Api()
 
 # Project is specified by <entity/project-name>
-runs = api.runs("jianjiang/perceiver_affection_hyper_trainval")
+# runs = api.runs("jianjiang/perceiver_affection_hyper_trainval")
+runs = api.runs("jianjiang/perceiver_affection_spd_trainval_bul")
+
 
 summary_list, config_list, name_list = [], [], []
-to_report_metrics = [ "test_loss", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
-to_separate_metrics = ["test_loss"]
-filter_configs = {"depth":5, "lr": 0.004, "num_latents": 256}
+to_report_metrics = [ "val_mse", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
+to_separate_metrics = ["val_mse"]
+# filter_configs = {"depth":5, "lr": 0.004, "num_latents": 256, "epochs":100}
+filter_configs = { "lr": 0.004, "gamma": 10, "epochs":10}
 to_report_configs = ["modalities"]
 
 # sorted runs by modalities
@@ -53,7 +56,8 @@ for run in runs:
         for key in to_report_metrics:
             if key in run.summary._json_dict:
 
-                if key in to_separate_metrics:
+                # if key in to_separate_metrics:
+                if "val_mse" in key:
                     # keep 4 decimal places
                     item += str(round(run.summary._json_dict[key], 4)) + ' & '
                 # times 100, and

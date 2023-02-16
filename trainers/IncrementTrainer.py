@@ -5,7 +5,7 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
 import wandb
 
 
@@ -53,14 +53,19 @@ class IncrementTrainer(TrainerABC):
         loss_binomial = entropy_loss_func(pred_sen)
         loss = loss + 0.5 * loss_binomial * self.args.alpha
         log_data[f'{mode}_loss_fairness'] = loss_binomial
+        #
+        # loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
+        # loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
+        # log_data[f'{mode}_loss_sen'] = loss_sen
+        #
+        # self.classification_metrics[mode].update(pred_sen, label_sen)
+        # class_acc = self.classification_metrics[mode].compute()
+        # log_data[f'{mode}_class_acc'] = class_acc
 
-        loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
-        loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
-        log_data[f'{mode}_loss_sen'] = loss_sen
+        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen)
+        loss = loss + loss_spd
 
-        self.classification_metrics[mode].update(pred_sen, label_sen)
-        class_acc = self.classification_metrics[mode].compute()
-        log_data[f'{mode}_class_acc'] = class_acc
+        log_data[f'{mode}_loss_spd'] = loss_spd
 
         loss_kd = self.knowledge_distillation_loss(fv, old_fv)
         loss = loss + self.args.beta * loss_kd

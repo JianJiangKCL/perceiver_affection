@@ -1,4 +1,4 @@
-project: perceiver_affection_hyper_mtl_trainval
+project: perceiver_affection_spd_trainval_bul
 
 
 program: main.py
@@ -25,23 +25,26 @@ parameters:
     values: [1995]
 
   epochs:
-    values: [25]
+    values: [10]
 
 #  beta:
 #    values: [0.1, 0.5, 1.0]
-  alpha:
-    values: [0.99]
+#  alpha:
+#    values: [0.5,0.8, 0.9,0.1]
+  # gamma bigger than 100 will have big impact on the val loss for audio
+  gamma:
+    values: [10]
 #  finetune:
 #    values: ["/vol/jj/proj/perceiver_affection/results/new_checkpoints2/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"]
 #
 #  modalities:
 #    values: ["text_facebody_audio"]
   finetune:
-    values: [ "/home/rootuser/proj/perceiver_affection/results/first/xxx_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt" ]
+    values: [ "/home/rootuser/proj/perceiver_affection/results/trainval_bul/xxx_lr0.004_e100_seed1995_optlamb_bs128_beta0.5_alpha_0.1/last.ckpt" ]
 
   modalities:
 #    values: [ "text_facebody_audio", "text_audio_senti_speech_time"]
-    values: ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_facebody_audio_senti_speech_time", "text_facebody_senti_speech_time", "text_audio_senti_speech_time"]
+    values:  [ "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
   is_baseline:
     values: [0]
 
@@ -49,7 +52,7 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["results/sweep_mtl_trainval_devicebul"]
+    values: ["results/sweep_spd_trainval_devicebul"]
   eval_every_n_epoch:
     values: [1]
 metric:
