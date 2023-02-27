@@ -1,0 +1,72 @@
+project: perceiver_affection_spd_third_trainval_bul
+
+
+program: main.py
+name: mtl_seed
+method: grid
+parameters:
+  depth:
+    values: [5]
+
+  num_latents:
+    values: [256]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.001]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [1995]
+
+  epochs:
+    values: [5]
+
+  beta:
+    values: [0.1]
+#  alpha:
+#    values: [0.99]
+  gamma:
+    values: [ 10 ]
+  finetune:
+    values: ["/home/rootuser/proj/perceiver_affection/results/sweep_spd_abs_trainval_devicebul_uniqueMean_from60/xxx_lr0.001_e5_seed1995_optlamb_bs128_beta0.5_alpha_0.1_gamma_10.0/last.ckpt"]
+
+  modalities:
+    values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
+
+  is_baseline:
+    values: [0]
+
+  # because it is ablation kd. so we set incremental to 0
+  is_incremental:
+    values: [0]
+
+  use_distribution_loss:
+    values: [1]
+
+  target_sensitive_group:
+    values: ["age"]
+
+  results_dir:
+    values: ["results/sweep_spd_trainval_devicebul_third_ablation"]
+
+  batch_size:
+    values: [128]
+  eval_every_n_epoch:
+    values: [ 1 ]
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

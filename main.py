@@ -30,8 +30,10 @@ def main(args):
 
 
 	modalities = [Modalities[name] for name in name_modalities]
-
-	sensitive_groups = ["gender", "age"]
+	if args.dataset == 'udiva':
+		sensitive_groups = ["gender", "age"]
+	elif args.dataset == 'fiv2':
+		sensitive_groups = ["gender", "ethnicity"]
 	train_loader = get_loader(args, name_modalities, sensitive_groups,  'train_val') #'train')#
 	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test') #'validation_test')#
 	test_loader = get_loader(args, name_modalities, sensitive_groups,  'test') #'validation_test')#

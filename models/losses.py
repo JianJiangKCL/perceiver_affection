@@ -117,6 +117,26 @@ def get_binary_ocean_values(ocean_values, STE=True):
     return ret
 
 
+def separate_threeway_label_group(to_separate, labels):
+    # get indices where labels are 1 via torch
+    indices_1 = torch.where(labels == 1)[0]
+
+    # get indices where labels are 2
+    indices_2 = torch.where(labels == 2)[0]
+
+    # get indices where labels are 0
+    indices_0 = torch.where(labels == 0)[0]
+
+    # get the OCEAN values for the indices where labels are 1
+    group_1 = to_separate[indices_1]
+    # get the OCEAN values for the indices where labels are 2
+    group_2 = to_separate[indices_2]
+    # get the OCEAN values for the indices where labels are 0
+    group_0 = to_separate[indices_0]
+
+    return group_0, group_1, group_2,
+
+
 def separate_binary_label_group(to_separate, labels):
     # get indices where labels are 1 via torch
     indices_1 = torch.where(labels == 1)[0]
@@ -224,6 +244,45 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
         SPDs.append(statistical_parity_difference)
     return DIRs, SPDs
 
+def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
+    # three groups based on the sensitive labels
+    OCEAN_preds_0, OCEAN_preds_1, OCEAN_preds_2 = separate_threeway_label_group(OCEAN_bin_preds, sensitive_labels)
+    num_0 = len(OCEAN_preds_0)
+    num_1 = len(OCEAN_preds_1)
+    num_2 = len(OCEAN_preds_2)
+
+    num_0 = torch.tensor(num_0).float()
+    num_1 = torch.tensor(num_1).float()
+    num_2 = torch.tensor(num_2).float()
+    # iter over the 5 OCEAN features
+    DIRs= []
+    SPDs = []
+    for i in range(5):
+
+        # calculate the proportion of positive predictions (y==1) for the privileged group
+        p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+        p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+        p_2 = torch.sum(OCEAN_preds_2[:, i]) / num_2
+
+        if p_0 >= p_1 and p_0 >= p_2:
+            p_privileged = p_0
+            p_unprivileged = (p_1 + p_2) / 2
+        elif p_1 >= p_0 and p_1 >= p_2:
+            p_privileged = p_1
+            p_unprivileged = (p_0 + p_2) / 2
+        else:
+            p_privileged = p_2
+            p_unprivileged = (p_0 + p_1) / 2
+
+        eps = 0.0001
+        p_privileged = p_privileged + eps
+        p_unprivileged = p_unprivileged + eps
+        disparate_impact_ratio = p_unprivileged / p_privileged
+        DIRs.append(disparate_impact_ratio)
+        statistical_parity_difference = p_unprivileged - p_privileged
+        SPDs.append(statistical_parity_difference)
+    return DIRs, SPDs
+
 
 def log_DIR(outputs, sensitive_group, mode):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
@@ -233,7 +292,10 @@ def log_DIR(outputs, sensitive_group, mode):
 
     # calculate OCEAN individually
     metric_name = ['O', 'C', 'E', 'A', 'N']
-    DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
+    if sensitive_group == 'ethnicity':
+        DIRs, SPDs = DIR_metric_three_way(binary_pred_ocean, sensitive_labels)
+    else:
+        DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
     for i in range(5):
         wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
         wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
@@ -248,51 +310,80 @@ def log_MSE(outputs, mode):
     wandb.log({f'{mode}_MSE': MSE})
 
 
-def SPD_loss(pred_ocean, label_sen):
+def SPD_loss(pred_ocean, label_sen, three_way=False):
 
     OCEAN_bin_preds = get_binary_ocean_values(pred_ocean, STE=True)
+    if three_way:
+        OCEAN_preds_0, OCEAN_preds_1, OCEAN_preds_2 = separate_threeway_label_group(OCEAN_bin_preds, label_sen)
+        num_0 = len(OCEAN_preds_0)
+        num_1 = len(OCEAN_preds_1)
+        num_2 = len(OCEAN_preds_2)
 
-    OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, label_sen)
-    num_1 = len(OCEAN_preds_1)
-    num_0 = len(OCEAN_preds_0)
+        num_0 = torch.tensor(num_0).float()
+        num_1 = torch.tensor(num_1).float()
+        num_2 = torch.tensor(num_2).float()
+        # iter over the 5 OCEAN features
+        SPDs = []
+        for i in range(5):
+            # calculate the proportion of positive predictions (y==1) for the privileged group
+            p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+            p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+            p_2 = torch.sum(OCEAN_preds_2[:, i]) / num_2
 
-    num_0 = torch.tensor(num_0).float()
-    num_1 = torch.tensor(num_1).float()
-    # iter over the 5 OCEAN features
-    SPDs = []
-    for i in range(5):
+            if p_0 >= p_1 and p_0 >= p_2:
+                p_privileged = p_0
+                p_unprivileged = (p_1 + p_2) / 2
+            elif p_1 >= p_0 and p_1 >= p_2:
+                p_privileged = p_1
+                p_unprivileged = (p_0 + p_2) / 2
+            else:
+                p_privileged = p_2
+                p_unprivileged = (p_0 + p_1) / 2
+            statistical_parity_difference = (p_privileged - p_unprivileged).abs()
+            SPDs.append(statistical_parity_difference)
 
-        # calculate the proportion of positive predictions (y==1) for the privileged group
-        p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
-        p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+    else:
+        OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, label_sen)
+        num_1 = len(OCEAN_preds_1)
+        num_0 = len(OCEAN_preds_0)
 
-        # if p_privileged == 0:  # so p_unprivileged is also 0
-        #
-        #     disparate_impact_ratio = -1
-        #     DIRs.append(disparate_impact_ratio)
-        #     statistical_parity_difference = -1
-        #     SPDs.append(statistical_parity_difference)
-        # else:
-        # if p_0 == 0:
-        #     diff_p_1 = (p_1 - 0) ** 2
-        # else:
-        #     diff_p_1 = 0
-        #mean squared error
-        statistical_parity_difference = (p_0 - p_1).abs() #+ diff_p_1
-        SPDs.append(statistical_parity_difference)
-        # dir loss is too aggressive, 10 gamma has almost 1 with big mse; but less gamma has more disparact impact
-        # if p_0 >= p_1:
-        #     p_privileged = p_0
-        #     p_unprivileged = p_1
-        # else:
-        #     p_privileged = p_1
-        #     p_unprivileged = p_0
-        # eps = 0.0001
-        # p_privileged = p_privileged + eps
-        # p_unprivileged = p_unprivileged + eps
-        # disparate_impact_ratio = p_unprivileged / p_privileged
-        #
-        # SPDs.append(disparate_impact_ratio)
+        num_0 = torch.tensor(num_0).float()
+        num_1 = torch.tensor(num_1).float()
+        # iter over the 5 OCEAN features
+        SPDs = []
+        for i in range(5):
+
+            # calculate the proportion of positive predictions (y==1) for the privileged group
+            p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+            p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+
+            # if p_privileged == 0:  # so p_unprivileged is also 0
+            #
+            #     disparate_impact_ratio = -1
+            #     DIRs.append(disparate_impact_ratio)
+            #     statistical_parity_difference = -1
+            #     SPDs.append(statistical_parity_difference)
+            # else:
+            # if p_0 == 0:
+            #     diff_p_1 = (p_1 - 0) ** 2
+            # else:
+            #     diff_p_1 = 0
+            #mean squared error
+            statistical_parity_difference = (p_0 - p_1).abs() #+ diff_p_1
+            SPDs.append(statistical_parity_difference)
+            # dir loss is too aggressive, 10 gamma has almost 1 with big mse; but less gamma has more disparact impact
+            # if p_0 >= p_1:
+            #     p_privileged = p_0
+            #     p_unprivileged = p_1
+            # else:
+            #     p_privileged = p_1
+            #     p_unprivileged = p_0
+            # eps = 0.0001
+            # p_privileged = p_privileged + eps
+            # p_unprivileged = p_unprivileged + eps
+            # disparate_impact_ratio = p_unprivileged / p_privileged
+            #
+            # SPDs.append(disparate_impact_ratio)
 
     return torch.mean(torch.stack(SPDs))
 

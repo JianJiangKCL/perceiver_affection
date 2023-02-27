@@ -7,13 +7,11 @@ from models.losses import set_ocean_means
 
 def get_loader(args, name_modalities, sensitive_groups, mode):
 
-
-	if args.dataset=='udiva':
+	if args.dataset == 'udiva':
 		# dataset_path = os.path.join(args.dataset_path, f'{mode}_text_facebody_senti_speech.npz')
 		dataset_path = os.path.join(args.dataset_path, f'{mode}_text_facebody_senti_speech_audio_time_talk_age26.npz')
-	elif args.dataset=='fiv2':
-		#TODO
-		dataset_path = os.path.join(args.dataset_path,)
+	elif args.dataset == 'fiv2':
+		dataset_path = os.path.join(args.dataset_path, f'fiv2_{mode}_text.npz')
 	if args.multi_task:
 		assert args.target_sensitive_group is not None
 		dataset = MultiTaskDataset(dataset_path, name_modalities, sensitive_groups)

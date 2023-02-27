@@ -49,7 +49,7 @@ class MultiTaskTrainer(TrainerABC):
         if self.current_epoch == 9:
             k = 1
 
-        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen)
+        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
         loss = loss + loss_spd
 
         log_data[f'{mode}_loss_spd'] = loss_spd

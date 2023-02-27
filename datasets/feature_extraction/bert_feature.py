@@ -9,6 +9,7 @@ import os
 
 # define a dataset class to load npz file
 
+
 class NpzDataset(data.Dataset):
 	"""
 	torch dataset for the raw data
@@ -19,19 +20,21 @@ class NpzDataset(data.Dataset):
 
 	def __init__(self, data_path):
 		data = np.load(data_path, allow_pickle=True)
-		self.raw_data = data['all_text']
+		self.raw_data = data['text']
+		self.video_ids = data['video_id']
 		self.participant_id = data['p_ids']
 		self.clip_id = data['clip_ids']
 
 	def __len__(self):
-		return len(self.participant_id)
+		return len(self.raw_data)
 
 	def __getitem__(self, idx):
 		# convert to tensor
 		text = self.raw_data[idx]
 		participant_id = self.participant_id[idx]
 		clip_id = self.clip_id[idx]
-		return text, participant_id, clip_id
+		video_id = self.video_ids[idx]
+		return text, video_id, participant_id, clip_id
 
 
 def convert_pkl2np(pkl_file):
@@ -42,7 +45,9 @@ def convert_pkl2np(pkl_file):
 	p_ids = []
 	clip_ids = []
 	all_text = []
+	video_ids = []
 	for key in data.keys():
+		video_ids.append(key)
 		p_id, clip_id, _ = key.split('.')
 		text = data[key]
 		p_ids.append(p_id)
@@ -53,7 +58,7 @@ def convert_pkl2np(pkl_file):
 	clip_ids = np.array(clip_ids)
 	all_text = np.array(all_text)
 	# save all these arrays in a single file
-	np.savez(pkl_file.replace('.pkl', '.npz'), p_ids=p_ids, clip_ids=clip_ids, all_text=all_text)
+	np.savez(pkl_file.replace('.pkl', '.npz'), text=all_text, video_id=video_ids, p_ids=p_ids, clip_ids=clip_ids)
 
 
 def bert_extraction(data_path, mode):
@@ -72,12 +77,14 @@ def bert_extraction(data_path, mode):
 
 	all_embs = []
 	all_part_ids = []
-
+	all_video_ids = []
 	all_clip_ids = []
 	for data in loader:
-		text, part_id, clip_id = data
+		text, video_ids, part_id, clip_id = data
+		# text, video_ids = data
 		embeddings = model.encode(text, batch_size=batch_size)
 		all_embs += embeddings.tolist()
+		all_video_ids += video_ids
 		all_part_ids += part_id
 		all_clip_ids += clip_id
 
@@ -85,15 +92,15 @@ def bert_extraction(data_path, mode):
 	all_part_ids = np.array(all_part_ids)
 	all_clip_ids = np.array(all_clip_ids)
 
-	np.savez(os.path.join(results_dir, f'bert_{mode}.npz'), all_embs=all_embs, all_part_ids=all_part_ids, all_clip_ids=all_clip_ids)
+	np.savez(os.path.join(results_dir, f'bert_{mode}.npz'), bert=all_embs, video_id=all_video_ids, p_id=all_part_ids, c_id=all_clip_ids)
 
 
 def main():
 	modes = ['training', 'validation', 'test']
 	root_dir = "H:/Dataset/first_impression_v2/"
 	pkl_file = root_dir + "transcription_mode.pkl"
-	# for mode in modes:
-	# 	convert_pkl2np(pkl_file.replace('mode', mode))
+	for mode in modes:
+		convert_pkl2np(pkl_file.replace('mode', mode))
 
 	# covert
 	for mode in modes:

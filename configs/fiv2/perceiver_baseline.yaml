@@ -1,0 +1,45 @@
+project: perceiver_affection_FIV2_v100_trainval
+name: 5
+# general args
+# model
+arch : perceiver
+
+dataset : fiv2
+modalities : ['text']
+depth : 5
+num_latents : 128
+latent_dim : 128
+cross_heads : 1
+latent_heads : 8
+cross_dim_head : 64
+latent_dim_head : 64
+num_outputs : 5
+
+
+#arch : infomax
+
+
+# train
+lr : 0.004
+epochs : 120
+
+num_workers : 4
+batch_size : 128
+
+distributed : False
+gpus : 1
+optimizer : lamb
+scheduler : constant
+is_baseline : 1
+seed: 1995
+eval_every_n_epoch : 1
+#wandb_mode: offline
+
+
+
+
+
+
+
+
+

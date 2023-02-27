@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import wandb
+import itertools
 api = wandb.Api()
 
 
@@ -14,7 +15,11 @@ def latex_table(fn):
             # iterate over lines
             line = ''
             pre_table = ''
+            caption_name = kwargs['caption_name']
             while "bottomrule" not in line:
+
+                if "\\caption{" in line and caption_name is not None:
+                    line = caption_name + "\n"
                 pre_table += line
                 line = f.readline()
             print(pre_table)
@@ -22,12 +27,13 @@ def latex_table(fn):
             print(line)
             # read() the rest of the file
             print(f.read())
+            print('\n \n')
             return None
     return wrapper
 
 
 @latex_table
-def print_sorted_runs(sorted_modalities_names, sorted_items):
+def print_sorted_runs(sorted_modalities_names, sorted_items, caption_name=None):
     for name, tmp in zip(sorted_modalities_names, sorted_items):
         item = ''
         # covert name to string
@@ -122,6 +128,7 @@ def record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_repor
     return sorted_modalities_names, sorted_items
 
 
+
 # for multiple random seeds
 def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs):
     all_items = []
@@ -159,8 +166,11 @@ def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_co
                     avged_items += str(round(avg, 2)) + ' & '
         avged_items = avged_items[:-2] + '\\\\'
         latex_table.append(avged_items)
-
-    print_sorted_runs(sorted_modalities_names, latex_table)
+    # caption_name is the combination of seeds and target_sensitive_group
+    target_sensitive_group = filter_configs["target_sensitive_group"]
+    caption_name = '\_'.join([str(x) for x in seeds])
+    caption_name = '\caption{'+ caption_name +  target_sensitive_group + '}'
+    print_sorted_runs(sorted_modalities_names, latex_table, caption_name=caption_name)
 
 
 to_report_configs = ["modalities"]
@@ -170,14 +180,15 @@ to_separate_metrics = ["val_mse"]
 # for baseline
 # filter_configs = {"depth":3, "lr": 0.004, "num_latents": 128, "epochs":50, "results_dir": "results/trainval_bul_baseline_right_uniqueMean"}
 # runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_bul_right")
-runs = api.runs("jianjiang/perceiver_affection_v100_age26_trainval")
-# 1996 and 6
-filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed":1995}
+# runs = api.runs("jianjiang/perceiver_affection_v100_age26_trainval")
+# # 1996 and 6
+# filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed":1996}
 # runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_a5000")
 
 # for second
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_3090")
-# filter_configs = { "lr": 0.004, "gamma": 5, "epochs": 5, "num_latents": 128, "seed": 1995, "target_sensitive_group": "gender"}
+filter_configs = { "lr": 0.004, "gamma": 5, "epochs": 5, "num_latents": 128, "seed": 1995, "target_sensitive_group": "age"}
+runs = api.runs("jianjiang/perceiver_affection_spd_v100_age26_trainval")
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_a5000")
 # for test
 # to_report_metrics = [ "test_loss", "gender_test_DIR_O", "gender_test_DIR_C", "gender_test_DIR_E", "gender_test_DIR_A", "gender_test_DIR_N", "age_test_DIR_O", "age_test_DIR_C", "age_test_DIR_E", "age_test_DIR_A", "age_test_DIR_N"]
@@ -191,10 +202,19 @@ filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed
 # runs = api.runs("jianjiang/perceiver_affection_spd_third_trainval_bul")
 # filter_configs = {"beta": 0.1, "results_dir": "results/sweep_spd_trainval_devicebul_third_ablation", "gamma":10}
 # runs = api.runs("jianjiang/perceiver_affection_third_trainval_a5000")
-# filter_configs = { "lr": 0.004, "beta": 1, "epochs":5}
-record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, runs)
+# runs = api.runs("jianjiang/perceiver_affection_third_trainval_v100_age26")
+# filter_configs = { "lr": 0.004, "beta": 1, "epochs":5, "num_latents": 128, "seed": 1995, "gamma":5 , "target_sensitive_group": "gender"}
+# record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, runs)
 
+# 0 6 1995 1996 1997
+# seeds = [0, 6, 1995, 1996, 1997]
+seeds = [6, 1995, 1996]
+#  three of them is a group, calculate multiple_runs for all groups
 
+for group in itertools.combinations(seeds, 3):
+    for target_group in [ 'age', 'gender']:
+        filter_configs["target_sensitive_group"] = target_group
+        multiple_runs(group, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs)
 k=1
 
 

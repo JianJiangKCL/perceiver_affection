@@ -1,0 +1,75 @@
+project: perceiver_affection_third_trainval_a5000
+
+
+program: main.py
+name: mtl_seed
+method: grid
+
+# configs and arguments need to be specified in parameters
+parameters:
+  arch :
+    values: ['perceiver']
+  depth:
+    values: [5]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.004]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [1995, 1996,1997]
+
+  epochs:
+    values: [5]
+
+  beta:
+    values: [1.0]
+#  alpha:
+#    values: [0.99]
+  gamma:
+    values: [ 5 ]
+  finetune:
+    values: ["/vol/jj/proj/perceiver_affection/results/trainval_a5000_mtl_uniqueMean_from60/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0/last.ckpt"]
+
+  modalities:
+    values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
+
+  is_baseline:
+    values: [0]
+
+  is_incremental:
+    values: [1]
+
+  use_distribution_loss:
+    values: [1]
+
+  target_sensitive_group:
+    values: ["age"]
+
+  results_dir:
+    values: ["results/third_trainval_a5000"]
+
+  batch_size:
+    values: [128]
+  eval_every_n_epoch:
+    values: [ 1 ]
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

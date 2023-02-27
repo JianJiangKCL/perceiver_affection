@@ -1,8 +1,11 @@
-project: perceiver_affection_third_trainval_v100_age26
-name: text_facebody
+project: perceiver_affection_spd_FIV2_v100_trainval
+name: second
 ## general args
 # model
 arch : perceiver
+
+dataset : fiv2
+modalities : ['text']
 
 depth : 5
 num_latents : 128
@@ -27,15 +30,11 @@ optimizer : lamb
 scheduler : constant
 seed : 1995
 is_baseline : 0
-beta : 1.0
 gamma : 5
 use_distribution_loss : 1
-is_incremental : 1
-target_sensitive_group : 'age'
-#finetune: "H:/tmp_results/lr0.001_e10_seed1995_optlamb_bs128_schedulermultistep_beta0.5_numlatent128_latentdim_128/last.ckpt"
-#finetune: "/vol/jj/proj/perceiver_affection/results/second/text_facebody_lr0.001_e10_seed1995_optlamb_bs128_beta0.5/last.ckpt"
 
 
+#finetune: "H:/tmp_results/senti_speech_time_lr0.004_e60_seed1995_optlamb_bs128_beta0.5_alpha_0.1_gamma_1/last.ckpt"
 
 
 

@@ -1,0 +1,49 @@
+project: perceiver_affection_different_modality2
+program: main.py
+#project: tmp
+#program: tmp.py
+controller:
+  type: local
+name: baseline
+method: grid
+parameters:
+  depth:
+    values: [3]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.004]
+
+  wandb_mode:
+    values: ["offline"]
+  scheduler:
+    values: [ "constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [1996, 1997, 0]
+  modalities:
+#    values: [ text, facebody, text facebody]
+    values: [ "text", "facebody", "audio", "text,facebody", "text,facebody,audio", "text,facebody,audio", "text,facebody,audio,senti,speech,time", "text,facebody,audio,senti,speech,time,talk", "senti,speech,time", "senti,speech,time,talk" ]
+  epochs:
+    values: [30]
+
+  is_baseline:
+    values: [1]
+
+#30 epoch don't consider the talk
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

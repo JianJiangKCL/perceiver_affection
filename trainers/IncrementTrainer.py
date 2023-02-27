@@ -61,7 +61,7 @@ class IncrementTrainer(TrainerABC):
         # class_acc = self.classification_metrics[mode].compute()
         # log_data[f'{mode}_class_acc'] = class_acc
 
-        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen)
+        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
         loss = loss + loss_spd
 
         log_data[f'{mode}_loss_spd'] = loss_spd
