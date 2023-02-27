@@ -61,6 +61,7 @@ class MultiModalityPerceiver(nn.Module):
         # for each modality, the input_dim = input_axis * ((num_freq_bands * 2) + 1) + input_channels
         # e.g., the input_dim for vision is 16
         input_dim = max(modality.input_dim for modality in modalities) + modality_encoding_dim
+        print(f"---------------input_dim={input_dim}")
         self.max_modality_dim = input_dim
         self.latents = nn.Parameter(torch.randn(num_latents, latent_dim))
         ff_type = FeedForwardGELU if use_gelu else FeedForward

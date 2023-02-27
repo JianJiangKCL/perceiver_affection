@@ -45,7 +45,8 @@ def convert_data(data_path, mode, save_path):
 	mapped_gender = np.array([1 if g == 'M' else 0 for g in gender]).astype(np.int64)
 	age = data.age.to_numpy()
 	# map gender, <30 is 1, >=30 is 0
-	mapped_age = np.array([1 if a < 30 else 0 for a in age]).astype(np.int64)
+	threshold_age = 26
+	mapped_age = np.array([1 if a < threshold_age else 0 for a in age]).astype(np.int64)
 	comb_OCEAN = get_OCEAN(data, labels).astype(np.float32)
 
 	# calculate the mean of the OCEAN
@@ -86,7 +87,7 @@ def convert_data(data_path, mode, save_path):
 	total_modality = [comb_bt, comb_fb, comb_senti, comb_speech, com_audio, comb_time, comb_talk]
 	file_name = '_'.join(total_modality_name)
 	# gender = np.array
-	file_name = os.path.join(save_path, f'{mode}_{file_name}.npz')
+	file_name = os.path.join(save_path, f'{mode}_{file_name}_age{threshold_age}.npz')
 	np.savez(file_name, **dict(zip(total_modality_name, total_modality)), OCEAN=comb_OCEAN, age=mapped_age, gender=mapped_gender, id=id)
 	return file_name
 
@@ -122,14 +123,15 @@ def main(args):
 	test_file_name = convert_data(data_path, 'test', save_path)
 	##################################
 	# combine train and validation data
-	# suffix = train_file_name.split('\\')[-1].split('train_')[-1]
-	# combine_train_val(train_file_name, val_file_name, os.path.join(save_path, f'train_val_{suffix}'))
-	# # load the combined data
-	# train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
+	suffix = train_file_name.split('\\')[-1].split('train_')[-1]
+	combine_train_val(train_file_name, val_file_name, os.path.join(save_path, f'train_val_{suffix}'))
+	# load the combined data
+	train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
 	# train_val_age = train_val_data['age']
+
 	#combine val and test data
-	suffix = val_file_name.split('\\')[-1].split('validation_')[-1]
-	combine_train_val(val_file_name, test_file_name, os.path.join(save_path, f'validation_test_{suffix}'))
+	# suffix = val_file_name.split('\\')[-1].split('validation_')[-1]
+	# combine_train_val(val_file_name, test_file_name, os.path.join(save_path, f'validation_test_{suffix}'))
 
 	##################################
 	k=1

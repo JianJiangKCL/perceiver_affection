@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
 
 def set_logger(args, root_dir):
     wandb_logger = WandbLogger(
-        name=f"{args.name}-task{args.task_id}",
+        name=f"{args.name}-task",
         project=args.project,
         offline=True if args.wandb_mode == 'offline' else False,
         reinit=True,
@@ -51,8 +51,9 @@ def set_logger(args, root_dir):
 def set_trainer(args, logger, save_path, kwargs=None):
     extra_kwargs = kwargs
     callbacks = []
-    checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_last=True)#, save_top_k=-1, monitor='val_loss', mode='min')
-    callbacks.append(checkpoint_callback)
+    if not args.test_only:
+        checkpoint_callback = ModelCheckpoint(dirpath=save_path, save_last=True)#, save_top_k=-1, monitor='val_loss', mode='min')
+        callbacks.append(checkpoint_callback)
 
     if args.lr_logger and logger is not None:
         lr_callback = LearningRateMonitor(logging_interval='step')

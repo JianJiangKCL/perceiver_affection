@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 
 def train_args(parser: ArgumentParser):
 	parser.add_argument("--seed", type=int, default=1993)
-	parser.add_argument("--arch", type=str, default='resnet18')
+	parser.add_argument("--arch", type=str)
 	parser.add_argument("--lr", type=float, default=0.1)
 	parser.add_argument("--epochs", type=int, default=200)
 	parser.add_argument("--warmup_epochs", type=int, default=10)

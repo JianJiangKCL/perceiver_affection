@@ -1,11 +1,11 @@
-project: perceiver_affection_hyper_mtl_trainval
+project: perceiver_affection_spd_v100_age26_trainval
 name: second
 ## general args
 # model
 arch : perceiver
 
 depth : 5
-num_latents : 256
+num_latents : 128
 latent_dim : 128
 cross_heads : 1
 latent_heads : 8
@@ -15,25 +15,23 @@ num_outputs : 5
 
 # train
 lr : 0.004
-epochs : 10
+epochs : 5
 
 num_workers : 4
 batch_size : 128
 
 distributed : False
-eval_every_n_epoch : 10
+eval_every_n_epoch : 1
 gpus : 1
 optimizer : lamb
 scheduler : constant
 seed : 1995
 is_baseline : 0
-alpha : 0.99
+gamma : 5
 use_distribution_loss : 1
 
-modalities: [text_facebody_audio]
-#finetune: "/vol/jj/proj/perceiver_affection/results/new_checkpoints2/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
 
-finetune: "/home/rootuser/proj/perceiver_affection/results/checkpoint/text_facebody_audio_lr0.004_e60_seed1995_optlamb_bs128_beta0.5/last.ckpt"
+#finetune: "H:/tmp_results/senti_speech_time_lr0.004_e60_seed1995_optlamb_bs128_beta0.5_alpha_0.1_gamma_1/last.ckpt"
 
 
 

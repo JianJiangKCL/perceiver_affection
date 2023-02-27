@@ -2,6 +2,7 @@ import warnings
 warnings.filterwarnings("ignore")
 from datasets.data_module import Modalities
 from models.multi_modality_perceiver import MultiModalityPerceiver
+from models.multimodal_infomax import MMIM
 from funcs.build_dataset import get_loader
 from funcs.setup import parse_args, set_logger, set_trainer
 from funcs.utils_funcs import load_state_dict_flexible_, set_seed
@@ -22,7 +23,7 @@ def main(args):
 			name_modalities = name_modalities[0].split('_')
 	print(f"modalities: {name_modalities}")
 	file_prefix = '_'.join(name_modalities)
-	root_dir = save_path = f"{args.results_dir}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
+	root_dir = save_path = f"{args.results_dir}/{args.target_sensitive_group}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
 						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}_gamma_{args.gamma}"
 
 	os.makedirs(save_path, exist_ok=True)
@@ -32,27 +33,39 @@ def main(args):
 
 	sensitive_groups = ["gender", "age"]
 	train_loader = get_loader(args, name_modalities, sensitive_groups,  'train_val') #'train')#
-	val_loader = get_loader(args, name_modalities, sensitive_groups, 'validation') #'validation_test')
-	test_loader = get_loader(args, name_modalities, sensitive_groups, 'validation') #'validation_test')
+	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test') #'validation_test')#
+	test_loader = get_loader(args, name_modalities, sensitive_groups,  'test') #'validation_test')#
 
-	backbone = MultiModalityPerceiver(
-		modalities=modalities,
-		depth=args.depth,
-		num_latents=args.num_latents,
-		latent_dim=args.latent_dim,
-		cross_heads=args.cross_heads,
-		latent_heads=args.latent_heads,
-		cross_dim_head=args.cross_dim_head,
-		latent_dim_head=args.latent_dim_head,
-		num_outputs=args.num_outputs,
-		attn_dropout=0.,
-		ff_dropout=0.,
-		weight_tie_layers=True
-	)
+	if args.arch == 'perceiver':
+		backbone = MultiModalityPerceiver(
+			modalities=modalities,
+			depth=args.depth,
+			num_latents=args.num_latents,
+			latent_dim=args.latent_dim,
+			cross_heads=args.cross_heads,
+			latent_heads=args.latent_heads,
+			cross_dim_head=args.cross_dim_head,
+			latent_dim_head=args.latent_dim_head,
+			num_outputs=args.num_outputs,
+			attn_dropout=0.,
+			ff_dropout=0.,
+			weight_tie_layers=True
+		)
+	elif args.arch == 'infomax':
+		backbone = MMIM(args)
 
 	if args.finetune:
+		if 'ttt' in args.finetune:
+			# fintune from the previously debiased sensitive group
+			# sensitive_groups = ["gender", "age"]
+			# remove target sensitive group from sensitive_groups and assign to tmp
+			tmp = sensitive_groups.copy()
+			tmp.remove(args.target_sensitive_group)
+			args.finetune = args.finetune.replace('ttt', tmp[0])
 		if 'xxx' in args.finetune:
 			args.finetune = args.finetune.replace('xxx', file_prefix)
+		if 'sss' in args.finetune:
+			args.finetune = args.finetune.replace('sss', str(args.seed))
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
 

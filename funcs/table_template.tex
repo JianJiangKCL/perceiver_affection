@@ -1,0 +1,19 @@
+\begin{table*}[!ht]
+ \rowcolors{8}{gray!10}{gray!40}
+    \small \centering
+    \caption{second stage. Training data= Training data + val data. 5 depth, 5 epochs, gamma=3 or gamma=2 lr 0.008 , target group gender }
+\setlength{\tabcolsep}{3pt} % Default value: 6pt
+\renewcommand{\arraystretch}{1} % Default value: 1
+    \begin{tabular*}{1.0\textwidth}{@{\extracolsep{\fill}} l ccccccc cccccc @{}}
+    \toprule
+    \multirow{3}{*}{Modalities} & \multirow{3}{*}{MSE} & \multicolumn{5}{c}{Gender group } & \multicolumn{5}{c}{Age group} 
+    \\ \cmidrule(lr){3-7}   \cmidrule(lr){8-12} &  & \multicolumn{5}{c}{Fairness} & & \multicolumn{5}{c}{Fairness}
+    \\ \cmidrule(lr){3-7}   \cmidrule(lr){8-12}  & & O           & C          & E       & A & N    &  O           & C          & E       & A & N 
+         \\ \midrule
+
+
+
+  \bottomrule
+    \end{tabular*}
+    \label{tab:CUB-to-Sketches}
+\end{table*}

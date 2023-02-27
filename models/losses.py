@@ -15,7 +15,7 @@ def set_ocean_means(ocean_means):
     OCEAN_MEANS = ocean_means
 
 
-# knowledge distillation loss
+# knowledge distillation loss cross-entropy version
 class KnowledgeDistillationLoss(nn.Module):
     def __init__(self, T):
         # alpha is the weight of the loss
@@ -28,6 +28,15 @@ class KnowledgeDistillationLoss(nn.Module):
         student_output = F.log_softmax(student_output / self.T, dim=1)
         teacher_output = F.softmax(teacher_output / self.T, dim=1)
         return self.kl_div(student_output, teacher_output) * (self.T ** 2)
+
+
+class KnowledgeDistillationLossCosine(nn.Module):
+
+    def forward(self, student_output, teacher_output):
+        # l2 normalize
+        student_output = F.normalize(student_output, dim=1)
+        teacher_output = F.normalize(teacher_output, dim=1)
+        return 1 - F.cosine_similarity(student_output, teacher_output, dim=1).mean()
 
 
 # fairness loss
@@ -199,17 +208,20 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
         else:
             p_privileged = p_1
             p_unprivileged = p_0
-        if p_privileged == 0:  # so p_unprivileged is also 0
-
-            disparate_impact_ratio = -1
-            DIRs.append(disparate_impact_ratio)
-            statistical_parity_difference = -1
-            SPDs.append(statistical_parity_difference)
-        else:
-            disparate_impact_ratio = p_unprivileged / p_privileged
-            DIRs.append(disparate_impact_ratio)
-            statistical_parity_difference = p_unprivileged - p_privileged
-            SPDs.append(statistical_parity_difference)
+        # if p_privileged == 0:  # so p_unprivileged is also 0
+        #
+        #     disparate_impact_ratio = -1
+        #     DIRs.append(disparate_impact_ratio)
+        #     statistical_parity_difference = -1
+        #     SPDs.append(statistical_parity_difference)
+        # else:
+        eps = 0.0001
+        p_privileged = p_privileged + eps
+        p_unprivileged = p_unprivileged + eps
+        disparate_impact_ratio = p_unprivileged / p_privileged
+        DIRs.append(disparate_impact_ratio)
+        statistical_parity_difference = p_unprivileged - p_privileged
+        SPDs.append(statistical_parity_difference)
     return DIRs, SPDs
 
 
@@ -225,6 +237,15 @@ def log_DIR(outputs, sensitive_group, mode):
     for i in range(5):
         wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
         wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
+
+def log_MSE(outputs, mode):
+    pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
+    label_ocean = torch.cat([output['label_ocean'] for output in outputs])
+    # calculate MSE for each dimension
+    MSE = F.mse_loss(pred_ocean, label_ocean)
+
+
+    wandb.log({f'{mode}_MSE': MSE})
 
 
 def SPD_loss(pred_ocean, label_sen):
@@ -245,9 +266,33 @@ def SPD_loss(pred_ocean, label_sen):
         p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
         p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
 
-        # mean squared error
-        statistical_parity_difference = (p_0 - p_1) ** 2
+        # if p_privileged == 0:  # so p_unprivileged is also 0
+        #
+        #     disparate_impact_ratio = -1
+        #     DIRs.append(disparate_impact_ratio)
+        #     statistical_parity_difference = -1
+        #     SPDs.append(statistical_parity_difference)
+        # else:
+        # if p_0 == 0:
+        #     diff_p_1 = (p_1 - 0) ** 2
+        # else:
+        #     diff_p_1 = 0
+        #mean squared error
+        statistical_parity_difference = (p_0 - p_1).abs() #+ diff_p_1
         SPDs.append(statistical_parity_difference)
+        # dir loss is too aggressive, 10 gamma has almost 1 with big mse; but less gamma has more disparact impact
+        # if p_0 >= p_1:
+        #     p_privileged = p_0
+        #     p_unprivileged = p_1
+        # else:
+        #     p_privileged = p_1
+        #     p_unprivileged = p_0
+        # eps = 0.0001
+        # p_privileged = p_privileged + eps
+        # p_unprivileged = p_unprivileged + eps
+        # disparate_impact_ratio = p_unprivileged / p_privileged
+        #
+        # SPDs.append(disparate_impact_ratio)
 
     return torch.mean(torch.stack(SPDs))
 

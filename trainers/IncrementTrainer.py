@@ -3,7 +3,7 @@ import torchmetrics
 import os
 from trainers.TrainerABC import TrainerABC
 import torch
-from models.losses import KnowledgeDistillationLoss
+from models.losses import KnowledgeDistillationLossCosine #KnowledgeDistillationLoss
 import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
 import wandb
@@ -20,7 +20,7 @@ class IncrementTrainer(TrainerABC):
         self.val_class_acc = torchmetrics.Accuracy()
         self.test_class_acc = torchmetrics.Accuracy()
         self.classification_metrics = {'train': self.train_class_acc, 'val': self.val_class_acc, 'test': self.test_class_acc}
-        self.knowledge_distillation_loss = KnowledgeDistillationLoss(T=1)
+        self.knowledge_distillation_loss = KnowledgeDistillationLossCosine()
         self.target_sensitive_group = args.target_sensitive_group
         self.sensitive_groups = sensitive_groups
         self.old_model = old_model
@@ -48,11 +48,10 @@ class IncrementTrainer(TrainerABC):
         }
 
         loss = loss_ocean
-        if self.current_epoch == 9:
-            k = 1
-        loss_binomial = entropy_loss_func(pred_sen)
-        loss = loss + 0.5 * loss_binomial * self.args.alpha
-        log_data[f'{mode}_loss_fairness'] = loss_binomial
+
+        # loss_binomial = entropy_loss_func(pred_sen)
+        # loss = loss + 0.5 * loss_binomial * self.args.alpha
+        # log_data[f'{mode}_loss_fairness'] = loss_binomial
         #
         # loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
         # loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen

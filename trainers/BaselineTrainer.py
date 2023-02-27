@@ -5,7 +5,7 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap
 import wandb
-
+from einops import rearrange
 
 class BaselineTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
@@ -16,13 +16,20 @@ class BaselineTrainer(TrainerABC):
 
     def shared_step(self, batch, mode):
         x, label_ocean, label_sen_dict = batch
-        modalities_x = {modality: x[modality] for modality in self.modalities}
-        
-        pred_ocean = self.backbone(modalities_x)
-        loss = self.mse_loss(pred_ocean, label_ocean)
+
+
+        if self.args.arch == 'perceiver':
+            modalities_x = {modality: x[modality] for modality in self.modalities}
+            pred_ocean = self.backbone(modalities_x)
+            loss = self.mse_loss(pred_ocean, label_ocean)
+        elif self.args.arch == 'infomax':
+            modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
+            lld, nce, pred_ocean, pn_dic, H = self.backbone(modalities_x)
+            # alpha defaut 0.3; beta default 0.1
+            loss = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.beta * lld
+
         self.metrics[mode].update(pred_ocean, label_ocean)
-        if self.current_epoch > 1:
-            k=1
+
         metric = self.metrics[mode].compute()
         log_data = {
             f'{mode}_loss': loss,

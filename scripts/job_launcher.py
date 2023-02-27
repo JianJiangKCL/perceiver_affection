@@ -80,7 +80,7 @@ elif args.mode == "slurm":
 
         # loading conda env
         source ~/.bashrc
-        conda activate nws  
+        conda activate KM  
         
         # the rest is the scripts
 

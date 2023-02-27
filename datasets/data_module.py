@@ -16,7 +16,10 @@ class NpDataset(Dataset):
         self.modalities = sorted(modalities)
         self.transforms = transforms
         self.targets = torch.from_numpy(d['OCEAN'])
-        self.OCEAN_mean = self.targets.mean(dim=0)
+        # self.OCEAN_mean = self.targets.mean(dim=0)
+        # unique values
+        self.OCEAN_mean = self.targets.unique(dim=0).mean(dim=0)
+        k=1
 
     def __getitem__(self, index):
 

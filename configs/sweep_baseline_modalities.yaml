@@ -1,4 +1,5 @@
-project: perceiver_affection_baseline_trainval_bul
+project: perceiver_affection_baseline_trainval_a5000
+#project: perceiver_affection_baseline_trainval_3090
 program: main.py
 #project: tmp
 #program: tmp.py
@@ -6,11 +7,13 @@ program: main.py
 name: baseline
 method: grid
 parameters:
+  arch:
+    values: [ 'perceiver' ]
   depth:
     values: [5]
 
   num_latents:
-    values: [256]
+    values: [128]
   latent_dim:
     values: [128]
   lr:
@@ -19,25 +22,26 @@ parameters:
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: [ "constant"]
+    values: ["constant"]
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1995]
+    values: [ 0, 1993, 2023, 6, 10]
   modalities:
     #[
     values:
     # comment out the following line to run all modalities
+#      ['text']
       ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
   epochs:
-    values: [60, 100]
+    values: [60]
 
   is_baseline:
     values: [1]
 
   results_dir:
-    values: ["results/trainval_bul"]
-
+    values: ["results/trainval_a5000_baseline_right_uniqueMean"]
+#    values: ["results/trainval_3090_baseline_right_uniqueMean"]
 #40 epoch don't consider the talk
 
 metric:
