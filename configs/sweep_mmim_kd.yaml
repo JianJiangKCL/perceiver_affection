@@ -1,0 +1,72 @@
+project: perceiver_affection_third_trainval_a5000
+
+
+program: main.py
+name: mtl_seed
+method: grid
+
+# configs and arguments need to be specified in parameters
+parameters:
+  arch :
+    values: ['infomax']
+
+  dataset:
+    values: [ udiva ]
+
+  cpc_layers:
+    values: [ 2 ]
+
+  dropout_prj:
+    values: [0, 0.3 ]
+  lr:
+    values: [0.004, 0.001]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["adam"]
+  seed:
+    values: [6, 1995, 1996]
+
+  epochs:
+    values: [5]
+  gamma:
+    values: [ 5 ]
+  finetune:
+    values: ["/vol/jj/proj/perceiver_affection/results/trainval_a5000_mtl_uniqueMean_from60/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0/last.ckpt"]
+
+  modalities:
+     values: [ "text_facebody_audio"]
+
+  is_baseline:
+    values: [0]
+
+  is_incremental:
+    values: [1]
+
+  use_distribution_loss:
+    values: [1]
+
+  target_sensitive_group:
+    values: ["age", 'gender']
+
+  results_dir:
+    values: ["mmim_results/third_trainval_a5000"]
+
+  batch_size:
+    values: [128]
+  eval_every_n_epoch:
+    values: [ 1 ]
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

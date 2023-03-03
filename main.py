@@ -23,8 +23,11 @@ def main(args):
 			name_modalities = name_modalities[0].split('_')
 	print(f"modalities: {name_modalities}")
 	file_prefix = '_'.join(name_modalities)
-	root_dir = save_path = f"{args.results_dir}/{args.target_sensitive_group}/{file_prefix}_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
-						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}_gamma_{args.gamma}"
+	file_suffix = f"_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
+						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}_gamma_{args.gamma}_beta_{args.beta}"
+	if args.arch == 'infomax':
+		file_suffix += f"_sigma_{args.sigma}_cpc{args.cpc_layers}_dropout_{args.dropout_prj}"
+	root_dir = save_path = f"{args.results_dir}/{args.target_sensitive_group}/{file_prefix}{file_suffix}"
 
 	os.makedirs(save_path, exist_ok=True)
 

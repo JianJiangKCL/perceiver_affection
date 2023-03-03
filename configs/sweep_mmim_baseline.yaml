@@ -1,0 +1,59 @@
+project: mmim_affection_hyper_trainval
+
+program: main.py
+name: baseline_hyper
+method: grid
+parameters:
+
+  arch:
+    values: [infomax]
+
+  dataset:
+    values: [udiva]
+  cpc_layers:
+    values: [2]
+
+  dropout_prj:
+    values: [0.3]
+
+  alpha:
+    values: [0.3]
+
+  sigma:
+    values: [0.1]
+
+
+  lr:
+    values: [0.001]
+  modalities:
+    values: [ "text_facebody_audio"]
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: [ "multistep"] #'multistep'] #,
+  optimizer:
+        values: ["adam"]
+  seed:
+    values: [6, 1995, 1996]
+
+  epochs:
+    values: [30]
+
+  is_baseline:
+    values: [1]
+
+  results_dir:
+    values: ["mmim_results/"]
+
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

@@ -21,7 +21,7 @@ num_outputs : 5
 
 # train
 lr : 0.004
-epochs : 120
+epochs : 60
 
 num_workers : 4
 batch_size : 128

@@ -48,3 +48,4 @@ def custom_args(parser: ArgumentParser):
 	                    help='hidden size in projection network')
 	parser.add_argument('--dropout_prj', type=float, default=0.1,
 	                    help='dropout of projection layer')
+	parser.add_argument('--sigma', type=float, default=0.1)

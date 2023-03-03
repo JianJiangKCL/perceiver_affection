@@ -4,7 +4,7 @@ from funcs.module_funcs import setup_optimizer, setup_scheduler
 from models.perceiver import Perceiver
 import os
 import wandb
-from models.losses import log_DIR, log_gap
+from models.losses import log_DIR, log_gap, log_MSE_sensitive, log_MSE_personality
 import torchmetrics
 import torch.nn as nn
 
@@ -20,6 +20,7 @@ class TrainerABC(pl.LightningModule):
         self.classification_metrics = None
         self.metrics = {'train': self.train_metric, 'val': self.val_metric, 'test': self.test_metric}
         self.mse_loss = nn.MSELoss()
+        self.mse_wo_reduction = nn.MSELoss(reduction='none')
         self.modalities = sorted(modalities)
         self.args = args
         self.backbone = backbone
@@ -43,9 +44,13 @@ class TrainerABC(pl.LightningModule):
         if local_rank == 0:
             # if mode == 'val' or mode == 'test':
             wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
+            log_MSE_personality(outputs, mode)
             for sensitive_group in self.sensitive_groups:
                 log_DIR(outputs, sensitive_group, mode)
                 log_gap(outputs, sensitive_group, mode)
+                log_MSE_sensitive(outputs, sensitive_group, mode)
+
+
         self.metrics[mode].reset()
         if self.classification_metrics is not None:
             self.classification_metrics[mode].reset()
@@ -65,6 +70,8 @@ class TrainerABC(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         self.shared_epoch_end(outputs, 'val')
+        # calculate per mse
+
 
     def test_step(self, batch, batch_idx):
         ret = self.shared_step(batch, 'test')

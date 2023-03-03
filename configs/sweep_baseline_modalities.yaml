@@ -1,5 +1,5 @@
-project: perceiver_affection_baseline_trainval_a5000
-#project: perceiver_affection_baseline_trainval_3090
+#project: perceiver_affection_baseline_trainval_a5000
+project: perceiver_affection_baseline_trainval_3090_final
 program: main.py
 #project: tmp
 #program: tmp.py
@@ -40,8 +40,8 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["results/trainval_a5000_baseline_right_uniqueMean"]
-#    values: ["results/trainval_3090_baseline_right_uniqueMean"]
+#    values: ["results/trainval_a5000_baseline_right_uniqueMean"]
+    values: ["results/trainval_3090_baseline_final"]
 #40 epoch don't consider the talk
 
 metric:

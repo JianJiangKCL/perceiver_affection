@@ -18,7 +18,7 @@ class NpDataset(Dataset):
         self.targets = torch.from_numpy(d['OCEAN'])
         # self.OCEAN_mean = self.targets.mean(dim=0)
         # unique values
-        num_unique = len( self.targets.unique(dim=0))
+        num_unique = len(self.targets.unique(dim=0))
         self.OCEAN_mean = self.targets.unique(dim=0).mean(dim=0)
         k=1
 

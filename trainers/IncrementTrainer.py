@@ -49,17 +49,7 @@ class IncrementTrainer(TrainerABC):
 
         loss = loss_ocean
 
-        # loss_binomial = entropy_loss_func(pred_sen)
-        # loss = loss + 0.5 * loss_binomial * self.args.alpha
-        # log_data[f'{mode}_loss_fairness'] = loss_binomial
-        #
-        # loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
-        # loss = loss + 0.5 * (1 - self.args.alpha) * loss_sen
-        # log_data[f'{mode}_loss_sen'] = loss_sen
-        #
-        # self.classification_metrics[mode].update(pred_sen, label_sen)
-        # class_acc = self.classification_metrics[mode].compute()
-        # log_data[f'{mode}_class_acc'] = class_acc
+
 
         loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
         loss = loss + loss_spd

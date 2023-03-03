@@ -10,11 +10,11 @@ SAVE_PATH='fiv2_results/baseline'
 
 GPU_ID=0
 
-SEEDS=( 1995  6 1996)
+SEEDS=(1995  6 1996 1997)
 
 CONFIG='configs/fiv2/perceiver_baseline.yaml'
 modes=("audio")
-
+#FINETUNE=
 for mode in ${modes[*]}
   do
 #    echo $mode

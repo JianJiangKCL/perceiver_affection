@@ -184,12 +184,15 @@ to_separate_metrics = ["val_mse"]
 # # 1996 and 6
 # filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed":1996}
 # runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_a5000")
-
+# filter_configs = {"cpc_layers":2, "lr": 0.001, "dropout_prj": 0.3, "epochs":30, "sigma":0.1, "scheduler": "multistep"}
+# runs = api.runs("jianjiang/mmim_affection_hyper_trainval")
 # for second
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_3090")
-filter_configs = { "lr": 0.004, "gamma": 5, "epochs": 5, "num_latents": 128, "seed": 1995, "target_sensitive_group": "age"}
-runs = api.runs("jianjiang/perceiver_affection_spd_v100_age26_trainval")
+# filter_configs = { "lr": 0.004, "gamma": 5, "epochs": 5, "num_latents": 128, "seed": 1995, "target_sensitive_group": "age"}
+# runs = api.runs("jianjiang/perceiver_affection_spd_v100_age26_trainval")
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_a5000")
+filter_configs = { "lr": 0.001, "gamma": 5, "epochs": 1, }
+runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
 # for test
 # to_report_metrics = [ "test_loss", "gender_test_DIR_O", "gender_test_DIR_C", "gender_test_DIR_E", "gender_test_DIR_A", "gender_test_DIR_N", "age_test_DIR_O", "age_test_DIR_C", "age_test_DIR_E", "age_test_DIR_A", "age_test_DIR_N"]
 # to_separate_metrics = ["test_loss"]

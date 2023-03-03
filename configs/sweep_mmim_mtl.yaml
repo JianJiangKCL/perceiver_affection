@@ -1,0 +1,66 @@
+project: mmim_affection_spd_trainval_3090
+
+program: main.py
+name: mtl_seed
+method: grid
+parameters:
+  arch:
+    values: [ 'infomax' ]
+
+  dataset:
+    values: [ udiva ]
+
+  cpc_layers:
+    values: [ 2 ]
+
+  dropout_prj:
+    values: [ 0 ]
+  lr:
+    values: [ 0.001 ]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["adam"]
+  seed:
+    values: [6, 1995, 1996]
+
+  epochs:
+    values: [1, 5]
+
+  gamma:
+    values: [ 5 ]
+  batch_size:
+    values: [128]
+
+  finetune:
+    values: [ "/home/rootuser/proj/perceiver_affection/mmim_results/gender/text_facebody_audio_lr0.001_e30_seedsss_optadam_bs128_beta0.5_alpha_0.3_gamma_1_sigma_0.1/last.ckpt" ]
+
+  modalities:
+    values: [ "text_facebody_audio"]
+  is_baseline:
+    values: [0]
+
+  use_distribution_loss:
+    values: [1]
+
+  results_dir:
+    values: ["mmim_results/second"]
+
+  eval_every_n_epoch:
+    values: [1]
+  target_sensitive_group:
+    values: [ "age", "gender" ]
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

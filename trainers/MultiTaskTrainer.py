@@ -7,7 +7,7 @@ from models.losses import KnowledgeDistillationLoss
 import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
 import wandb
-
+from einops import rearrange
 
 class MultiTaskTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
@@ -32,13 +32,20 @@ class MultiTaskTrainer(TrainerABC):
         x, label_ocean, label_sen_dict = batch
         label_sen = label_sen_dict[self.target_sensitive_group]
         label_sen = label_sen.long()
-        modalities_x = {modality: x[modality] for modality in self.modalities}
+        if self.args.arch == 'perceiver':
+            modalities_x = {modality: x[modality] for modality in self.modalities}
 
-        fv = self.backbone.extract_features(modalities_x)
-        pred_ocean = self.backbone.to_logits(fv)
-        pred_sen = self.backbone.cosine_fc(fv)
+            fv = self.backbone.extract_features(modalities_x)
+            pred_ocean = self.backbone.to_logits(fv)
+            # pred_sen = self.backbone.cosine_fc(fv)
 
-        loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+            loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+        elif self.args.arch == 'infomax':
+            modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
+            lld, nce, pred_ocean, pn_dic, H = self.backbone(modalities_x)
+            # alpha defaut 0.3; sigma default 0.1
+            loss_ocean = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
+
         self.metrics[mode].update(pred_ocean, label_ocean)
 
         log_data = {
@@ -46,36 +53,13 @@ class MultiTaskTrainer(TrainerABC):
         }
 
         loss = loss_ocean
-        if self.current_epoch == 9:
-            k = 1
+
 
         loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
         loss = loss + loss_spd
 
         log_data[f'{mode}_loss_spd'] = loss_spd
 
-        # loss_binomial = entropy_loss_func(pred_sen)
-        # loss = loss + self.args.gamma * loss_binomial * self.args.alpha
-        # log_data[f'{mode}_loss_fairness'] = loss_binomial
-        #
-        # loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
-        # self.classification_metrics[mode].update(pred_sen, label_sen)
-        # class_acc = self.classification_metrics[mode].compute()
-        # log_data[f'{mode}_class_acc'] = class_acc
-        # loss = loss + self.args.gamma * (1 - self.args.alpha) * loss_sen
-        # log_data[f'{mode}_loss_sen'] = loss_sen
-
-
-
-        # if self.args.use_distribution_loss:
-        #     loss_binomial = entropy_loss_func(pred_sen)
-        #     loss = loss + loss_binomial * self.args.alpha
-        #     log_data[f'{mode}_loss_fairness'] = loss_binomial
-        #
-        # else:
-        #     loss_sen = self.cls_imbalance_loss(pred_sen, label_sen)
-        #     loss = loss_ocean + self.args.beta * loss_sen
-        #     log_data[f'{mode}_loss_sen'] = loss_sen
 
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'

@@ -16,6 +16,7 @@ cross_dim_head : 64
 latent_dim_head : 64
 num_outputs : 5
 
+
 # train
 lr : 0.004
 epochs : 5

@@ -206,6 +206,7 @@ def separate_binary_label_group(to_separate, labels):
 #     return DIRs, SPDs
 
 
+@torch.no_grad()
 def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     # two groups based on the sensitive labels
     OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, sensitive_labels)
@@ -244,6 +245,8 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
         SPDs.append(statistical_parity_difference)
     return DIRs, SPDs
 
+
+@torch.no_grad()
 def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
     # three groups based on the sensitive labels
     OCEAN_preds_0, OCEAN_preds_1, OCEAN_preds_2 = separate_threeway_label_group(OCEAN_bin_preds, sensitive_labels)
@@ -284,6 +287,7 @@ def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
     return DIRs, SPDs
 
 
+@torch.no_grad()
 def log_DIR(outputs, sensitive_group, mode):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
@@ -300,14 +304,37 @@ def log_DIR(outputs, sensitive_group, mode):
         wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
         wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
 
-def log_MSE(outputs, mode):
+
+@torch.no_grad()
+def log_MSE_personality(outputs, mode):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     label_ocean = torch.cat([output['label_ocean'] for output in outputs])
     # calculate MSE for each dimension
-    MSE = F.mse_loss(pred_ocean, label_ocean)
+    MSE = F.mse_loss(pred_ocean, label_ocean, reduction='none')
+    # 5 dimensions, 5 metrics
+    metric_name = ['O', 'C', 'E', 'A', 'N']
+    for i in range(5):
+        # output the average MSE for each dimension
+        wandb.log({f'{mode}_MSE_{metric_name[i]}': MSE[:, i].mean()})
 
 
-    wandb.log({f'{mode}_MSE': MSE})
+@torch.no_grad()
+def log_MSE_sensitive(outputs, sensitive_group,  mode):
+
+    pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
+    label_ocean = torch.cat([output['label_ocean'] for output in outputs])
+    label_sen = torch.cat([output['label_sen_dict'][sensitive_group] for output in outputs])
+
+    # calculate MSE for each dimension
+    # MSE = F.mse_loss(pred_ocean, label_ocean, reduction='none')
+    MSE_1 = F.mse_loss(pred_ocean[label_sen == 1], label_ocean[label_sen == 1])
+    MSE_0 = F.mse_loss(pred_ocean[label_sen == 0], label_ocean[label_sen == 0])
+
+    # wandb.log({f'{mode}_MSE': MSE})
+    wandb.log({f'{sensitive_group}_{mode}_MSE_1': MSE_1})
+    wandb.log({f'{sensitive_group}_{mode}_MSE_0': MSE_0})
+    # log absolute gap
+    wandb.log({f'{sensitive_group}_{mode}_MSE_gap': abs(MSE_1 - MSE_0)})
 
 
 def SPD_loss(pred_ocean, label_sen, three_way=False):
