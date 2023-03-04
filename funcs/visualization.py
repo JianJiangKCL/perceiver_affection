@@ -10,7 +10,7 @@ api = wandb.Api()
 def latex_table(fn):
     def wrapper(*args, **kwargs):
         # print content from table_template.tex
-        with open("table_template.tex", "r") as f:
+        with open("table_template_v3.tex", "r") as f:
             # print if not \bottomrule
             # iterate over lines
             line = ''
@@ -43,7 +43,7 @@ def print_sorted_runs(sorted_modalities_names, sorted_items, caption_name=None):
         # replace audio with Audio
         item = item.replace("audio", "Audio")
         # replace facebody with FaceBody
-        item = item.replace("facebody", "FaceBody")
+        item = item.replace("facebody", "Video")
         # replace senti,speech,time with Textual
         item = item.replace("senti,speech,time", "Textual")
         # replace senti,speech,text,time with  BERT, Textual
@@ -151,13 +151,15 @@ def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_co
     k = 1
     latex_table = []
     all_items = np.array(all_items)
+    to_sep = [0, 1, 2, 3, 9, 10, 11]
+    # to_sep = [0, 1]
     # compute the average of all items
     for i in range(len(all_items[0])):
         avged_items = ''
         for j in range(len(all_items[0][i])):
             avg = np.mean(all_items[:, i, j])
-            if j == 0:
-                avged_items += str(round(avg, 4)) + ' & '
+            if j in to_sep:
+                avged_items += str(round(avg, 2)) + ' & '
             else:
                 if avg < 80:
                     #  \textcolor{red}{0.7907}
@@ -172,10 +174,11 @@ def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_co
     caption_name = '\caption{'+ caption_name +  target_sensitive_group + '}'
     print_sorted_runs(sorted_modalities_names, latex_table, caption_name=caption_name)
 
-
+print('dada')
 to_report_configs = ["modalities"]
-to_report_metrics = [ "val_mse", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
-to_separate_metrics = ["val_mse"]
+# to_report_metrics = [ "val_mse", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
+to_report_metrics = [ "val_mse", "gender_val_MSE_1", "gender_val_MSE_0", "gender_val_MSE_gap", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_MSE_1", "age_val_MSE_0", "age_val_MSE_gap", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
+to_separate_metrics = ["val_mse", "gender_val_MSE_gap", "age_val_MSE_gap", "age_val_MSE_1", "age_val_MSE_0", "gender_val_MSE_1", "gender_val_MSE_0"]
 
 # for baseline
 # filter_configs = {"depth":3, "lr": 0.004, "num_latents": 128, "epochs":50, "results_dir": "results/trainval_bul_baseline_right_uniqueMean"}
@@ -191,8 +194,8 @@ to_separate_metrics = ["val_mse"]
 # filter_configs = { "lr": 0.004, "gamma": 5, "epochs": 5, "num_latents": 128, "seed": 1995, "target_sensitive_group": "age"}
 # runs = api.runs("jianjiang/perceiver_affection_spd_v100_age26_trainval")
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_a5000")
-filter_configs = { "lr": 0.001, "gamma": 5, "epochs": 1, }
-runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
+# filter_configs = { "lr": 0.001, "gamma": 5, "epochs": 1, }
+# runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
 # for test
 # to_report_metrics = [ "test_loss", "gender_test_DIR_O", "gender_test_DIR_C", "gender_test_DIR_E", "gender_test_DIR_A", "gender_test_DIR_N", "age_test_DIR_O", "age_test_DIR_C", "age_test_DIR_E", "age_test_DIR_A", "age_test_DIR_N"]
 # to_separate_metrics = ["test_loss"]
@@ -200,25 +203,41 @@ runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
 # filter_configs = {}
 
 # for third
-# to_report_metrics = [ "val_mse", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
+
 # to_separate_metrics = ["val_mse"]
 # runs = api.runs("jianjiang/perceiver_affection_spd_third_trainval_bul")
 # filter_configs = {"beta": 0.1, "results_dir": "results/sweep_spd_trainval_devicebul_third_ablation", "gamma":10}
 # runs = api.runs("jianjiang/perceiver_affection_third_trainval_a5000")
 # runs = api.runs("jianjiang/perceiver_affection_third_trainval_v100_age26")
 # filter_configs = { "lr": 0.004, "beta": 1, "epochs":5, "num_latents": 128, "seed": 1995, "gamma":5 , "target_sensitive_group": "gender"}
-# record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, runs)
 
+
+
+# filter_configs = {"cpc_layers":2, "lr": 0.001, "dropout_prj": 0.3, "epochs": 30, "sigma":0.1}
+# runs = api.runs("jianjiang/mmim_affection_base_trainval")
+
+filter_configs = {"cpc_layers": 2, "lr": 0.001, "dropout_prj": 0, "epochs": 5, "sigma": 0.1, "gamma": 5}
+runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
+
+#############final perceiver
+# filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed":1996}
+# runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_3090_final")
+
+
+# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996}
+# runs = api.runs("jianjiang/perceiver_affection_spd_trainval_3090_final")
+#######################
+# record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, runs)
 # 0 6 1995 1996 1997
 # seeds = [0, 6, 1995, 1996, 1997]
 seeds = [6, 1995, 1996]
 #  three of them is a group, calculate multiple_runs for all groups
 
 for group in itertools.combinations(seeds, 3):
-    for target_group in [ 'age', 'gender']:
+    for target_group in ['age', 'gender']:
         filter_configs["target_sensitive_group"] = target_group
         multiple_runs(group, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs)
-k=1
+# k=1
 
 
 

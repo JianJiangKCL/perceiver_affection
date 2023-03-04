@@ -24,7 +24,7 @@ class BaselineTrainer(TrainerABC):
             loss = self.mse_loss(pred_ocean, label_ocean)
         elif self.args.arch == 'infomax':
             modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
-            lld, nce, pred_ocean, pn_dic, H = self.backbone(modalities_x)
+            lld, nce, pred_ocean, pn_dic, H, _ = self.backbone(modalities_x)
             # alpha defaut 0.3; sigma default 0.1
             loss = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
 

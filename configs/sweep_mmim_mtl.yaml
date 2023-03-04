@@ -14,7 +14,7 @@ parameters:
     values: [ 2 ]
 
   dropout_prj:
-    values: [ 0 ]
+    values: [ 0]
   lr:
     values: [ 0.001 ]
 
@@ -28,7 +28,7 @@ parameters:
     values: [6, 1995, 1996]
 
   epochs:
-    values: [1, 5]
+    values: [ 5]
 
   gamma:
     values: [ 5 ]
@@ -36,7 +36,7 @@ parameters:
     values: [128]
 
   finetune:
-    values: [ "/home/rootuser/proj/perceiver_affection/mmim_results/gender/text_facebody_audio_lr0.001_e30_seedsss_optadam_bs128_beta0.5_alpha_0.3_gamma_1_sigma_0.1/last.ckpt" ]
+    values: [ "/DATA/jj/affection/mmim_results/baseline/gender/text_facebody_audio_lr0.001_e30_seedsss_optadam_bs128_beta0.5_alpha_0.3_gamma_1_beta_0.5_sigma_0.1_cpc2_dropout_0.3/last.ckpt" ]
 
   modalities:
     values: [ "text_facebody_audio"]
@@ -47,7 +47,7 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["mmim_results/second"]
+    values: ["/DATA/jj/affection/mmim_results/second"]
 
   eval_every_n_epoch:
     values: [1]

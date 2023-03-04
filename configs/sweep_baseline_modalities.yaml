@@ -26,7 +26,7 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
-    values: [ 0, 1993, 2023, 6, 10]
+    values: [ 6, 1995, 1996]
   modalities:
     #[
     values:
@@ -41,7 +41,7 @@ parameters:
 
   results_dir:
 #    values: ["results/trainval_a5000_baseline_right_uniqueMean"]
-    values: ["results/trainval_3090_baseline_final"]
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_final"]
 #40 epoch don't consider the talk
 
 metric:

@@ -1,4 +1,4 @@
-project: perceiver_affection_third_trainval_a5000
+project: mmim_affection_third_trainval_3090
 
 
 program: main.py
@@ -31,11 +31,11 @@ parameters:
     values: [6, 1995, 1996]
 
   epochs:
-    values: [5]
+    values: [1,5]
   gamma:
     values: [ 5 ]
   finetune:
-    values: ["/vol/jj/proj/perceiver_affection/results/trainval_a5000_mtl_uniqueMean_from60/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0/last.ckpt"]
+    values: ["/DATA/jj/affection/mmim_results/second/ttt/text_facebody_audio_lr0.001_e5_seedsss_optadam_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5_sigma_0.1_cpc2_dropout_0.3/last.ckpt"]
 
   modalities:
      values: [ "text_facebody_audio"]
@@ -53,7 +53,7 @@ parameters:
     values: ["age", 'gender']
 
   results_dir:
-    values: ["mmim_results/third_trainval_a5000"]
+    values: ["/DATA/jj/affection/mmim_results/third_trainval_a3090"]
 
   batch_size:
     values: [128]

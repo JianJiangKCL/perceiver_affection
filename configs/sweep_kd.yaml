@@ -1,4 +1,4 @@
-project: perceiver_affection_third_trainval_a5000
+project: perceiver_affection_third_trainval_3090_final
 
 
 program: main.py
@@ -26,7 +26,7 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1995, 1996,1997]
+    values: [ 6, 1995, 1996]
 
   epochs:
     values: [5]
@@ -38,7 +38,7 @@ parameters:
   gamma:
     values: [ 5 ]
   finetune:
-    values: ["/vol/jj/proj/perceiver_affection/results/trainval_a5000_mtl_uniqueMean_from60/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0/last.ckpt"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_final/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
 
   modalities:
     values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
@@ -56,7 +56,7 @@ parameters:
     values: ["age"]
 
   results_dir:
-    values: ["results/third_trainval_a5000"]
+    values: ["/DATA/jj/affection/results/third_trainval_a5000"]
 
   batch_size:
     values: [128]

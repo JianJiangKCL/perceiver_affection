@@ -7,7 +7,7 @@ from models.losses import KnowledgeDistillationLossCosine #KnowledgeDistillation
 import torch
 from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
 import wandb
-
+from einops import rearrange
 
 class IncrementTrainer(TrainerABC):
     def __init__(self, args, backbone, old_model, modalities, sensitive_groups):
@@ -30,17 +30,26 @@ class IncrementTrainer(TrainerABC):
         x, label_ocean, label_sen_dict = batch
         label_sen = label_sen_dict[self.target_sensitive_group]
         label_sen = label_sen.long()
-        modalities_x = {modality: x[modality] for modality in self.modalities}
+        if self.args.arch == 'perceiver':
+            modalities_x = {modality: x[modality] for modality in self.modalities}
 
-        fv = self.backbone.extract_features(modalities_x)
 
-        # don't update the old model
-        old_fv = self.old_model.extract_features(modalities_x).detach()
+            fv = self.backbone.extract_features(modalities_x)
 
-        pred_ocean = self.backbone.to_logits(fv)
-        pred_sen = self.backbone.cosine_fc(fv)
+            # don't update the old model
+            old_fv = self.old_model.extract_features(modalities_x).detach()
 
-        loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+            pred_ocean = self.backbone.to_logits(fv)
+            # pred_sen = self.backbone.cosine_fc(fv)
+
+            loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+        elif self.args.arch == 'infomax':
+            modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
+            _, _, _, _, _, old_fv = self.old_model(modalities_x)
+            old_fv = old_fv.detach()
+            lld, nce, pred_ocean, pn_dic, H, fv = self.backbone(modalities_x)
+            loss_ocean = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
+
         self.metrics[mode].update(pred_ocean, label_ocean)
 
         log_data = {

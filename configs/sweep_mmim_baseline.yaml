@@ -1,27 +1,25 @@
-project: mmim_affection_hyper_trainval
+project: mmim_affection_base_trainval
 
 program: main.py
 name: baseline_hyper
 method: grid
 parameters:
-
   arch:
     values: [infomax]
 
   dataset:
     values: [udiva]
   cpc_layers:
-    values: [2]
+    values: [2, 3]
 
-  dropout_prj:
+  dropout_prj: # 0.1 is not good
     values: [0.3]
 
   alpha:
     values: [0.3]
 
   sigma:
-    values: [0.1]
-
+    values: [0.5,0.1] #sigma currently has no impact
 
   lr:
     values: [0.001]
@@ -43,8 +41,7 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["mmim_results/"]
-
+    values: ["/DATA/jj/affection/mmim_results/baseline"]
 
 metric:
   goal: minimize

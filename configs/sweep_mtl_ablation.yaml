@@ -1,4 +1,4 @@
-project: perceiver_affection_spd_trainval_3090_final
+project: perceiver_affection_ablation_trainval_3090_final
 #project: perceiver_affection_spd_trainval_3090
 
 program: main.py
@@ -15,8 +15,7 @@ parameters:
   latent_dim:
     values: [128]
   lr:
-    values: [ 0.004] # lr 0.001 with gamma 5 is little bit low performance;
-
+    values: [ 0.004]
   wandb_mode:
     values: ["online"]
   scheduler:
@@ -24,12 +23,12 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
+
     values: [ 6, 1995, 1996]
   epochs:
     values: [5]
-  # gamma bigger than 100 will have big impact on the val loss for audio
+
   gamma:
-#    values: [2, 2.5, 3, 5]
     values: [ 5 ]
   batch_size:
     values: [128]
@@ -37,16 +36,17 @@ parameters:
     values: [ "/DATA/jj/affection/results/trainval_3090_baseline_final/gender/xxx_lr0.004_e60_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/last.ckpt" ]
 
   modalities:
-#    values: [ "text"]
-    values:  [  "text","facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
+    values:  [  "text","facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
+
+  # simply finetune the baseline w/o spd loss
   is_baseline:
-    values: [0]
+    values: [1]
 
   use_distribution_loss:
     values: [1]
 
   results_dir:
-    values: ["/DATA/jj/affection/results/trainval_mtl_final"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_ablation_final"]
 
   eval_every_n_epoch:
     values: [1]

@@ -35,7 +35,7 @@ class SubNet(nn.Module):
 		# normed = self.norm(x)
 		dropped = self.drop(x)
 		y_1 = torch.tanh(self.linear_1(dropped))
-		fusion = self.linear_2(y_1)
+		# fusion = self.linear_2(y_1)
 		y_2 = torch.tanh(self.linear_2(y_1))
 		y_3 = self.linear_3(y_2)
 		return y_2, y_3
@@ -268,4 +268,12 @@ class MMIM(nn.Module):
 		lld = lld_tv + lld_ta
 		H = H_tv + H_ta
 
-		return lld, nce, preds, pn_dic, H
+		return lld, nce, preds, pn_dic, H, fusion
+
+	# def extract_features(self, multi_modality_data, y=None, mem=None):
+	# 	"""
+	# 	text, audio, and vision should have dimension [batch_size, seq_len, n_features]
+	# 	For Bert input, the length of text is "seq_len + 2"
+	# 	"""
+	#
+	# 	return self.forward(multi_modality_data, y, mem)

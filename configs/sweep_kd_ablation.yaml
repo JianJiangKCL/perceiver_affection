@@ -1,19 +1,23 @@
-project: perceiver_affection_spd_third_trainval_bul
+project: perceiver_affection_third_trainval_3090_final
 
 
 program: main.py
 name: mtl_seed
 method: grid
+
+# configs and arguments need to be specified in parameters
 parameters:
+  arch :
+    values: ['perceiver']
   depth:
     values: [5]
 
   num_latents:
-    values: [256]
+    values: [128]
   latent_dim:
     values: [128]
   lr:
-    values: [0.001]
+    values: [0.004]
 
   wandb_mode:
     values: ["online"]
@@ -22,19 +26,19 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1995]
+    values: [ 6, 1995, 1996]
 
   epochs:
     values: [5]
 
   beta:
-    values: [0.1]
+    values: [1.0]
 #  alpha:
 #    values: [0.99]
   gamma:
-    values: [ 10 ]
+    values: [ 5 ]
   finetune:
-    values: ["/home/rootuser/proj/perceiver_affection/results/sweep_spd_abs_trainval_devicebul_uniqueMean_from60/xxx_lr0.001_e5_seed1995_optlamb_bs128_beta0.5_alpha_0.1_gamma_10.0/last.ckpt"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_final/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
 
   modalities:
     values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
@@ -42,9 +46,8 @@ parameters:
   is_baseline:
     values: [0]
 
-  # because it is ablation kd. so we set incremental to 0
   is_incremental:
-    values: [0]
+    values: [1]
 
   use_distribution_loss:
     values: [1]
@@ -53,7 +56,7 @@ parameters:
     values: ["age"]
 
   results_dir:
-    values: ["results/sweep_spd_trainval_devicebul_third_ablation"]
+    values: ["/DATA/jj/affection/results/third_trainval_a5000"]
 
   batch_size:
     values: [128]
