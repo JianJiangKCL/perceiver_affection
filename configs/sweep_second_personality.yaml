@@ -1,0 +1,67 @@
+project: perceiver_affection_spd_trainval_3090_personality
+
+
+program: main.py
+name: mtl_seed
+method: grid
+parameters:
+  arch:
+    values: [ 'perceiver' ]
+  depth:
+    values: [5]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [ 0.004] # lr 0.001 with gamma 5 is little bit low performance;
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [ 6, 1995, 1996]
+  epochs:
+    values: [5]
+  # gamma bigger than 100 will have big impact on the val loss for audio
+  gamma:
+#    values: [2, 2.5, 3, 5]
+    values: [ 5 ]
+  batch_size:
+    values: [128]
+  finetune:
+    values: [ "/DATA/jj/affection/results/trainval_3090_baseline_personality/gender/xxx_lr0.004_e30_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/personality_ppp/last.ckpt" ]
+
+  modalities:
+    values:  ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+  is_baseline:
+    values: [0]
+
+  use_distribution_loss:
+    values: [1]
+
+  results_dir:
+    values: ["/DATA/jj/affection/results/trainval_mtl_personality"]
+
+  eval_every_n_epoch:
+    values: [1]
+
+  target_personality:
+    values: [ 0, 1, 2, 3, 4 ]
+  target_sensitive_group:
+    values: ["gender" , "age"] #
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

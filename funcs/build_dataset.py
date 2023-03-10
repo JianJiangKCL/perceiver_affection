@@ -1,4 +1,4 @@
-from datasets.data_module import NpDataset, Modalities, MultiTaskDataset
+from datasets.data_module import NpDataset, Modalities, MultiTaskDataset, BiasedDatasetWrapper
 from torch.utils.data import DataLoader
 import os
 from torchvision.datasets import ImageFolder
@@ -15,6 +15,10 @@ def get_loader(args, name_modalities, sensitive_groups, mode):
 	if args.multi_task:
 		assert args.target_sensitive_group is not None
 		dataset = MultiTaskDataset(dataset_path, name_modalities, sensitive_groups)
+		if args.bias_sensitive is not None :#and (mode =='train' or mode == 'train_val'):
+			print(mode, "is biased")
+			# create a custom biased dataset
+			dataset = BiasedDatasetWrapper(dataset, args.bias_sensitive, args.bias_group, args.bias_personality)
 	else:
 		dataset = NpDataset(dataset_path, name_modalities)
 	set_ocean_means(dataset.OCEAN_mean)

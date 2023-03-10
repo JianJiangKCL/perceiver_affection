@@ -7,6 +7,7 @@ from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap
 import wandb
 from einops import rearrange
 
+
 class BaselineTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
         super(BaselineTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
@@ -17,18 +18,30 @@ class BaselineTrainer(TrainerABC):
     def shared_step(self, batch, mode):
         x, label_ocean, label_sen_dict = batch
 
-
         if self.args.arch == 'perceiver':
             modalities_x = {modality: x[modality] for modality in self.modalities}
             pred_ocean = self.backbone(modalities_x)
-            loss = self.mse_loss(pred_ocean, label_ocean)
+            # loss = self.mse_loss(pred_ocean, label_ocean)
         elif self.args.arch == 'infomax':
             modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
             lld, nce, pred_ocean, pn_dic, H, _ = self.backbone(modalities_x)
             # alpha defaut 0.3; sigma default 0.1
-            loss = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
+            loss_info = self.args.alpha * nce - self.args.sigma * lld
+            # loss = self.mse_loss(pred_ocean, label_ocean)
 
-        self.metrics[mode].update(pred_ocean, label_ocean)
+        if self.args.target_personality is not None:
+            loss_mse = self.mse_loss(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
+            self.metrics[mode].update(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
+
+        else:
+            loss_mse = self.mse_loss(pred_ocean, label_ocean)
+            self.metrics[mode].update(pred_ocean, label_ocean)
+
+        if self.args.arch == 'perceiver':
+            loss = loss_mse
+        elif self.args.arch == 'infomax':
+            loss = loss_mse + loss_info
+
 
         metric = self.metrics[mode].compute()
         log_data = {

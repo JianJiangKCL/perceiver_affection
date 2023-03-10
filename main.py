@@ -23,12 +23,18 @@ def main(args):
 			name_modalities = name_modalities[0].split('_')
 	print(f"modalities: {name_modalities}")
 	file_prefix = '_'.join(name_modalities)
+	if args.bias_sensitive is not None:
+		file_prefix = f"/bias_{args.bias_sensitive}_group{args.bias_group}_personality{args.bias_personality}/" + file_prefix
 	file_suffix = f"_lr{args.lr}_e{args.epochs}_seed{args.seed}_opt{args.optimizer}_" \
 						   f"bs{args.batch_size}_beta{args.beta}_alpha_{args.alpha}_gamma_{args.gamma}_beta_{args.beta}"
+
 	if args.arch == 'infomax':
 		file_suffix += f"_sigma_{args.sigma}_cpc{args.cpc_layers}_dropout_{args.dropout_prj}"
-	root_dir = save_path = f"{args.results_dir}/{args.target_sensitive_group}/{file_prefix}{file_suffix}"
 
+	if args.target_personality is not None:
+		file_suffix += f"/personality_{args.target_personality}"
+
+	root_dir = save_path = f"{args.results_dir}/{args.target_sensitive_group}/{file_prefix}{file_suffix}"
 	os.makedirs(save_path, exist_ok=True)
 
 
@@ -39,6 +45,7 @@ def main(args):
 		sensitive_groups = ["gender", "ethnicity"]
 	train_loader = get_loader(args, name_modalities, sensitive_groups,  'train_val') #'train')#
 	val_loader = get_loader(args, name_modalities, sensitive_groups, 'test') #'validation_test')#
+
 	test_loader = get_loader(args, name_modalities, sensitive_groups,  'test') #'validation_test')#
 
 	if args.arch == 'perceiver':
@@ -71,6 +78,8 @@ def main(args):
 			args.finetune = args.finetune.replace('xxx', file_prefix)
 		if 'sss' in args.finetune:
 			args.finetune = args.finetune.replace('sss', str(args.seed))
+		if 'ppp' in args.finetune:
+			args.finetune = args.finetune.replace('ppp', str(args.target_personality))
 		checkpoint = torch.load(args.finetune)
 		backbone = load_state_dict_flexible_(backbone, checkpoint['state_dict'])
 

@@ -1,4 +1,4 @@
-project: mmim_affection_third_trainval_3090
+project: mmim_affection_third_trainval_3090_final
 
 
 program: main.py
@@ -17,9 +17,9 @@ parameters:
     values: [ 2 ]
 
   dropout_prj:
-    values: [0, 0.3 ]
+    values: [0.3 ]
   lr:
-    values: [0.004, 0.001]
+    values: [0.001]
 
   wandb_mode:
     values: ["online"]
@@ -31,11 +31,13 @@ parameters:
     values: [6, 1995, 1996]
 
   epochs:
-    values: [1,5]
+    values: [1]
+  beta:
+    values: [0.5, 1, 2]
   gamma:
-    values: [ 5 ]
+    values: [ 8 ]
   finetune:
-    values: ["/DATA/jj/affection/mmim_results/second/ttt/text_facebody_audio_lr0.001_e5_seedsss_optadam_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5_sigma_0.1_cpc2_dropout_0.3/last.ckpt"]
+    values: ["/DATA/jj/affection/mmim_results/second/ttt/text_facebody_audio_lr0.001_e1_seedsss_optadam_bs128_beta0.5_alpha_0.1_gamma_1.0_beta_0.5_sigma_0.1_cpc2_dropout_0.3/last.ckpt"]
 
   modalities:
      values: [ "text_facebody_audio"]
@@ -53,7 +55,7 @@ parameters:
     values: ["age", 'gender']
 
   results_dir:
-    values: ["/DATA/jj/affection/mmim_results/third_trainval_a3090"]
+    values: ["/DATA/jj/affection/mmim_results/third_trainval_a3090_from_dropout0.3"]
 
   batch_size:
     values: [128]

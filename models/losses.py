@@ -143,7 +143,7 @@ def separate_binary_label_group(to_separate, labels):
 
     # get indices where sensitive labels are 0
     indices_0 = torch.where(labels == 0)[0]
-
+    # the group indices can be [], i.e., empty list
     # get the OCEAN values for the indices where labels are 1
     group_1 = to_separate[indices_1]
     # get the OCEAN values for the indices where labels are 0
@@ -221,8 +221,14 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     for i in range(5):
 
         # calculate the proportion of positive predictions (y==1) for the privileged group
+        # diretly 1- p for evaluation doesn't meet the expectation
         p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
         p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+        # if nan set 0; don't need to be differentiable here
+        if torch.isnan(p_0):
+            p_0 = torch.tensor([0.])
+        if torch.isnan(p_1):
+            p_1 = torch.tensor([0.])
         if p_0 >= p_1:
             p_privileged = p_0
             p_unprivileged = p_1
@@ -266,7 +272,12 @@ def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
         p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
         p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
         p_2 = torch.sum(OCEAN_preds_2[:, i]) / num_2
-
+        if torch.isnan(p_0):
+            p_0 = torch.tensor([0.])
+        if torch.isnan(p_1):
+            p_1 = torch.tensor([0.])
+        if torch.isnan(p_2):
+            p_2 = torch.tensor([0.])
         if p_0 >= p_1 and p_0 >= p_2:
             p_privileged = p_0
             p_unprivileged = (p_1 + p_2) / 2
@@ -337,7 +348,7 @@ def log_MSE_sensitive(outputs, sensitive_group,  mode):
     wandb.log({f'{sensitive_group}_{mode}_MSE_gap': abs(MSE_1 - MSE_0)})
 
 
-def SPD_loss(pred_ocean, label_sen, three_way=False):
+def SPD_loss(pred_ocean, label_sen, target_personality=None, three_way=False):
 
     OCEAN_bin_preds = get_binary_ocean_values(pred_ocean, STE=True)
     if three_way:
@@ -353,6 +364,8 @@ def SPD_loss(pred_ocean, label_sen, three_way=False):
         SPDs = []
         for i in range(5):
             # calculate the proportion of positive predictions (y==1) for the privileged group
+            if target_personality is not None:
+                i = target_personality
             p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
             p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
             p_2 = torch.sum(OCEAN_preds_2[:, i]) / num_2
@@ -368,6 +381,8 @@ def SPD_loss(pred_ocean, label_sen, three_way=False):
                 p_unprivileged = (p_0 + p_1) / 2
             statistical_parity_difference = (p_privileged - p_unprivileged).abs()
             SPDs.append(statistical_parity_difference)
+            if target_personality is not None:
+                break
 
     else:
         OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, label_sen)
@@ -379,38 +394,15 @@ def SPD_loss(pred_ocean, label_sen, three_way=False):
         # iter over the 5 OCEAN features
         SPDs = []
         for i in range(5):
-
-            # calculate the proportion of positive predictions (y==1) for the privileged group
+            if target_personality is not None:
+                i = target_personality
             p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
             p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
-
-            # if p_privileged == 0:  # so p_unprivileged is also 0
-            #
-            #     disparate_impact_ratio = -1
-            #     DIRs.append(disparate_impact_ratio)
-            #     statistical_parity_difference = -1
-            #     SPDs.append(statistical_parity_difference)
-            # else:
-            # if p_0 == 0:
-            #     diff_p_1 = (p_1 - 0) ** 2
-            # else:
-            #     diff_p_1 = 0
             #mean squared error
             statistical_parity_difference = (p_0 - p_1).abs() #+ diff_p_1
             SPDs.append(statistical_parity_difference)
-            # dir loss is too aggressive, 10 gamma has almost 1 with big mse; but less gamma has more disparact impact
-            # if p_0 >= p_1:
-            #     p_privileged = p_0
-            #     p_unprivileged = p_1
-            # else:
-            #     p_privileged = p_1
-            #     p_unprivileged = p_0
-            # eps = 0.0001
-            # p_privileged = p_privileged + eps
-            # p_unprivileged = p_unprivileged + eps
-            # disparate_impact_ratio = p_unprivileged / p_privileged
-            #
-            # SPDs.append(disparate_impact_ratio)
+            if target_personality is not None:
+                break
 
     return torch.mean(torch.stack(SPDs))
 

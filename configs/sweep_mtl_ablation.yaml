@@ -1,12 +1,14 @@
 project: perceiver_affection_ablation_trainval_3090_final
-#project: perceiver_affection_spd_trainval_3090
+
 
 program: main.py
 name: mtl_seed
 method: grid
+
+# configs and arguments need to be specified in parameters
 parameters:
-  arch:
-    values: [ 'perceiver' ]
+  arch :
+    values: ['perceiver']
   depth:
     values: [5]
 
@@ -15,7 +17,8 @@ parameters:
   latent_dim:
     values: [128]
   lr:
-    values: [ 0.004]
+    values: [0.004]
+
   wandb_mode:
     values: ["online"]
   scheduler:
@@ -23,35 +26,42 @@ parameters:
   optimizer:
         values: ["lamb"]
   seed:
-
     values: [ 6, 1995, 1996]
+
   epochs:
     values: [5]
 
+  beta:
+    values: [0.5]
+#  alpha:
+#    values: [0.99]
   gamma:
-    values: [ 5 ]
-  batch_size:
-    values: [128]
+    values: [ 10 ]
   finetune:
-    values: [ "/DATA/jj/affection/results/trainval_3090_baseline_final/gender/xxx_lr0.004_e60_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/last.ckpt" ]
+    values: ["/DATA/jj/affection/results/trainval_mtl_final/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
 
   modalities:
-    values:  [  "text","facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
+    values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
 
-  # simply finetune the baseline w/o spd loss
   is_baseline:
-    values: [1]
+    values: [0]
+  # finetune the baseline w/o spd loss but with fairness loss
+  is_incremental:
+    values: [0]
 
   use_distribution_loss:
     values: [1]
 
-  results_dir:
-    values: ["/DATA/jj/affection/results/trainval_mtl_ablation_final"]
-
-  eval_every_n_epoch:
-    values: [1]
   target_sensitive_group:
-    values: [ "age", "gender" ]
+    values: ["gender", "age"]
+
+  results_dir:
+    values: ["/DATA/jj/affection/results/trainval_kd_ablation_final"]
+
+  batch_size:
+    values: [128]
+  eval_every_n_epoch:
+    values: [ 1 ]
 metric:
   goal: minimize
   name: test_loss

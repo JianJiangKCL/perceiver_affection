@@ -10,7 +10,7 @@ api = wandb.Api()
 def latex_table(fn):
     def wrapper(*args, **kwargs):
         # print content from table_template.tex
-        with open("table_template_v3.tex", "r") as f:
+        with open("latex/table_template_v3.tex", "r") as f:
             # print if not \bottomrule
             # iterate over lines
             line = ''
@@ -32,15 +32,39 @@ def latex_table(fn):
     return wrapper
 
 
+def find_already_fair_runs(target_group):
+    sensitive_group = ['gender', 'age']
+    sensitive_group.remove(target_group)
+    sensitive_group = sensitive_group[0]
+    with open(f"latex/{sensitive_group}_second_stage.tex", "r") as f:
+        search_range = [i for i in range(5, 10)] if target_group =='gender' else [i for i in range(13, 18)]
+
+        to_keep = {}
+        line = f.readline()
+        while line:
+
+            items = line.split('&')
+            name = items[0]
+            # join items to string based on search_range
+            items = [items[i] for i in search_range]
+            to_search = ''.join(items)
+
+            if '%' in line:
+                to_keep[name] = line
+
+            elif 'textcolor' not in to_search:
+                to_keep[name] = line
+            line = f.readline()
+
+        return to_keep
+
+
+
 @latex_table
-def print_sorted_runs(sorted_modalities_names, sorted_items, caption_name=None):
-    for name, tmp in zip(sorted_modalities_names, sorted_items):
-        item = ''
-        # covert name to string
-        modalities = ','.join(name)
-        item += modalities + ' & '
-        item += tmp
+def print_sorted_runs(sorted_modalities_names, sorted_items, previous_results_to_keep=None, caption_name=None, ):
+    def modifiy_item(item):
         # replace audio with Audio
+        item = item.replace("%", "")
         item = item.replace("audio", "Audio")
         # replace facebody with FaceBody
         item = item.replace("facebody", "Video")
@@ -51,6 +75,20 @@ def print_sorted_runs(sorted_modalities_names, sorted_items, caption_name=None):
         # # replace text with BERT, except \textcolor
         item = item.replace("text", "BERT")
         item = item.replace("\BERT", "\\text")
+        return item
+    for name, tmp in zip(sorted_modalities_names, sorted_items):
+
+        item = ''
+        # covert name to string
+        modalities = ','.join(name)
+        item += modalities + ' & '
+        item += tmp
+        item = modifiy_item(item)
+        modified_name = item.split('&')[0]
+        if previous_results_to_keep is not None and modified_name in previous_results_to_keep.keys():
+            to_get_name = "%" + modified_name
+            item = previous_results_to_keep[to_get_name]
+            item = modifiy_item(item)
 
         print(item)
 
@@ -130,7 +168,7 @@ def record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_repor
 
 
 # for multiple random seeds
-def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs):
+def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, caption_prefix, previous_results_to_keep=None):
     all_items = []
     for seed in seeds:
         filter_configs["seed"] = seed
@@ -170,15 +208,26 @@ def multiple_runs(seeds, runs, to_report_metrics, to_separate_metrics, filter_co
         latex_table.append(avged_items)
     # caption_name is the combination of seeds and target_sensitive_group
     target_sensitive_group = filter_configs["target_sensitive_group"]
-    caption_name = '\_'.join([str(x) for x in seeds])
-    caption_name = '\caption{'+ caption_name +  target_sensitive_group + '}'
-    print_sorted_runs(sorted_modalities_names, latex_table, caption_name=caption_name)
+    caption_name = caption_prefix + '\_'.join([str(x) for x in seeds])
+    caption_name = '\caption{'+ caption_name +  target_sensitive_group
+    # plus gamma
+    # caption_name += '  gamma\_' + str(filter_configs["gamma"])
+    # # plus beta
+    # caption_name += '  beta\_' + str(filter_configs["beta"])
+    # end }
+    caption_name += '}'
+    print_sorted_runs(sorted_modalities_names, latex_table, caption_name=caption_name, previous_results_to_keep=previous_results_to_keep)
 
 print('dada')
+
 to_report_configs = ["modalities"]
 # to_report_metrics = [ "val_mse", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
 to_report_metrics = [ "val_mse", "gender_val_MSE_1", "gender_val_MSE_0", "gender_val_MSE_gap", "gender_val_DIR_O", "gender_val_DIR_C", "gender_val_DIR_E", "gender_val_DIR_A", "gender_val_DIR_N", "age_val_MSE_1", "age_val_MSE_0", "age_val_MSE_gap", "age_val_DIR_O", "age_val_DIR_C", "age_val_DIR_E", "age_val_DIR_A", "age_val_DIR_N"]
 to_separate_metrics = ["val_mse", "gender_val_MSE_gap", "age_val_MSE_gap", "age_val_MSE_1", "age_val_MSE_0", "gender_val_MSE_1", "gender_val_MSE_0"]
+# replace val with test
+key_name_test = 'test'
+to_report_metrics = [x.replace('val', key_name_test) for x in to_report_metrics]
+to_separate_metrics = [x.replace('val', key_name_test) for x in to_separate_metrics]
 
 # for baseline
 # filter_configs = {"depth":3, "lr": 0.004, "num_latents": 128, "epochs":50, "results_dir": "results/trainval_bul_baseline_right_uniqueMean"}
@@ -212,32 +261,63 @@ to_separate_metrics = ["val_mse", "gender_val_MSE_gap", "age_val_MSE_gap", "age_
 # filter_configs = { "lr": 0.004, "beta": 1, "epochs":5, "num_latents": 128, "seed": 1995, "gamma":5 , "target_sensitive_group": "gender"}
 
 
-
+####### final mimm
 # filter_configs = {"cpc_layers":2, "lr": 0.001, "dropout_prj": 0.3, "epochs": 30, "sigma":0.1}
 # runs = api.runs("jianjiang/mmim_affection_base_trainval")
 
-filter_configs = {"cpc_layers": 2, "lr": 0.001, "dropout_prj": 0, "epochs": 5, "sigma": 0.1, "gamma": 5}
-runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
-
+# epoch 5; dropout 0.3 or 0 will let age debiase gender more
+# epoch 1 dropout 0; just did the job
+# filter_configs = {"cpc_layers": 2, "lr": 0.001, "dropout_prj": 0.3, "epochs": 1, "sigma": 0.1, "gamma": 5, "beta": 2}
+# runs = api.runs("jianjiang/mmim_affection_spd_trainval_3090")
+# runs = api.runs("jianjiang/mmim_affection_third_trainval_3090_final")
 #############final perceiver
 # filter_configs = {"depth":5, "lr": 0.004, "num_latents": 128, "epochs":60, "seed":1996}
 # runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_3090_final")
 
 
-# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996}
+# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996, "gamma": 5, "beta": 0.5}
+# runs = api.runs("jianjiang/perceiver_affection_ablation_test")
 # runs = api.runs("jianjiang/perceiver_affection_spd_trainval_3090_final")
+# runs = api.runs("jianjiang/perceiver_affection_ablation_trainval_3090_final")
+# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996, "gamma": 3, "beta": 10}
+# runs = api.runs("jianjiang/perceiver_affection_third_trainval_3090_final")
+# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996, "gamma": 3, "beta": 0.5, "results_dir": "/DATA/jj/affection/results/trainval_kd_ablation_final", "is_baseline": 0}
+# runs = api.runs("jianjiang/perceiver_affection_ablation_trainval_3090_final")
+
+filter_configs = { "results_dir": '/DATA/jj/affection/results/trainval_3090_baseline_several_biased', "bias_sensitive": "gender"}
+runs = api.runs("jianjiang/perceiver_affection_baseline_trainval_3090_biased")
+
 #######################
+
+
+### test dir(1-)
+# filter_configs = {"depth": 5, "lr": 0.004,  "epochs": 5, "seed":1996, "gamma": 8, "results_dir": "/DATA/jj/affection/results/trainval_kd_test"}
+# runs = api.runs("jianjiang/perceiver_affection_ablation_test")
+
 # record_runs(to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, runs)
 # 0 6 1995 1996 1997
 # seeds = [0, 6, 1995, 1996, 1997]
 seeds = [6, 1995, 1996]
 #  three of them is a group, calculate multiple_runs for all groups
 
+# for gamma in [2, 3, 4]:
+#     filter_configs["gamma"] = gamma
+
+
+
+caption_prefix = "all biased baseline "
+# caption_prefix = "second"
+# for beta in [2, 5, 8]:
+#     filter_configs["beta"] = beta
 for group in itertools.combinations(seeds, 3):
     for target_group in ['age', 'gender']:
+        # to_keep = find_already_fair_runs(target_group)
+        to_keep = None
         filter_configs["target_sensitive_group"] = target_group
-        multiple_runs(group, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs)
-# k=1
+        multiple_runs(group, runs, to_report_metrics, to_separate_metrics, filter_configs, to_report_configs, caption_prefix=caption_prefix, previous_results_to_keep=to_keep)
+
+
+k=1
 
 
 

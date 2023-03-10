@@ -5,9 +5,10 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss, log_MSE_sensitive, log_MSE_personality
 import wandb
 from einops import rearrange
+
 
 class MultiTaskTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
@@ -39,34 +40,42 @@ class MultiTaskTrainer(TrainerABC):
             pred_ocean = self.backbone.to_logits(fv)
             # pred_sen = self.backbone.cosine_fc(fv)
 
-            loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+            # loss_ocean = self.mse_loss(pred_ocean, label_ocean)
         elif self.args.arch == 'infomax':
             modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
             lld, nce, pred_ocean, pn_dic, H, _ = self.backbone(modalities_x)
             # alpha defaut 0.3; sigma default 0.1
-            loss_ocean = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
+            # loss_ocean = self.mse_loss(pred_ocean, label_ocean) + self.args.alpha * nce - self.args.sigma * lld
+            loss_info = self.args.alpha * nce - self.args.sigma * lld
 
-        self.metrics[mode].update(pred_ocean, label_ocean)
+        if self.args.target_personality is not None:
+            loss_mse = self.mse_loss(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
+            self.metrics[mode].update(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
+
+        else:
+            loss_mse = self.mse_loss(pred_ocean, label_ocean)
+            self.metrics[mode].update(pred_ocean, label_ocean)
+
+        if self.args.arch == 'perceiver':
+            loss = loss_mse
+        elif self.args.arch == 'infomax':
+            loss = loss_mse + loss_info
 
         log_data = {
-            f'{mode}_loss_ocean': loss_ocean,
+            f'{mode}_loss_ocean': loss_mse,
         }
 
-        loss = loss_ocean
 
+        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, target_personality=self.args.target_personality, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
 
-        loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
         loss = loss + loss_spd
 
         log_data[f'{mode}_loss_spd'] = loss_spd
-
 
         self.log_out(log_data, mode)
         prefix = '' if mode == 'train' else f'{mode}_'
         ret = {f'{prefix}loss': loss, 'label_sen_dict': label_sen_dict, 'pred_ocean': pred_ocean, 'label_ocean': label_ocean}
         return ret
-
-
 
     def training_epoch_end(self, outputs):
         mode = 'train'
@@ -74,6 +83,11 @@ class MultiTaskTrainer(TrainerABC):
         metric = self.metrics[mode].compute()
         if local_rank == 0:
             print(f'{mode}_metric: {metric}')
+            log_MSE_personality(outputs, mode)
+            for sensitive_group in self.sensitive_groups:
+                log_DIR(outputs, sensitive_group, mode)
+                log_gap(outputs, sensitive_group, mode)
+                log_MSE_sensitive(outputs, sensitive_group, mode)
         self.metrics[mode].reset()
         self.classification_metrics[mode].reset()
 

@@ -34,12 +34,20 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--num_outputs", default=5, type=int)
 	parser.add_argument("--multi_task", choices=[0, 1], type=int, default=1)
 	parser.add_argument("--target_sensitive_group", default='gender', type=str)
+	parser.add_argument("--target_personality", default=None, type=int)
 	parser.add_argument("--is_baseline", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--is_incremental", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--alpha", type=float, default=0.1, help='the weight of the two distribution losses')
 	parser.add_argument("--use_distribution_loss", choices=[0, 1], type=int, default=0)
 	parser.add_argument("--modalities", nargs='+', default=['text', 'facebody'], help='the modalities to be used', action=ParserList)
 	parser.add_argument("--gamma", type=float, default=1, help='the weight of total distribution loss')
+
+	# for biased custom dataset
+	parser.add_argument("--bias_sensitive", type=str, default=None, help='create biased dataset')
+	parser.add_argument("--bias_group", type=int, default=0, help='create biased dataset')
+	parser.add_argument("--bias_personality", type=int, default=0, help='create biased dataset')
+
+
 
 	# for MMI
 	parser.add_argument('--cpc_layers', type=int, default=1,

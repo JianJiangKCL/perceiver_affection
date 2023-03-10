@@ -5,7 +5,7 @@ from trainers.TrainerABC import TrainerABC
 import torch
 from models.losses import KnowledgeDistillationLossCosine #KnowledgeDistillationLoss
 import torch
-from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss
+from models.losses import get_binary_ocean_values, DIR_metric, log_DIR, log_gap, FairnessDistributionLoss, entropy_loss_func, SPD_loss, log_MSE_sensitive, log_MSE_personality
 import wandb
 from einops import rearrange
 
@@ -43,6 +43,7 @@ class IncrementTrainer(TrainerABC):
             # pred_sen = self.backbone.cosine_fc(fv)
 
             loss_ocean = self.mse_loss(pred_ocean, label_ocean)
+
         elif self.args.arch == 'infomax':
             modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
             _, _, _, _, _, old_fv = self.old_model(modalities_x)
@@ -81,6 +82,11 @@ class IncrementTrainer(TrainerABC):
         metric = self.metrics[mode].compute()
         if local_rank == 0:
             print(f'{mode}_metric: {metric}')
+            log_MSE_personality(outputs, mode)
+            for sensitive_group in self.sensitive_groups:
+                log_DIR(outputs, sensitive_group, mode)
+                log_gap(outputs, sensitive_group, mode)
+                log_MSE_sensitive(outputs, sensitive_group, mode)
         self.metrics[mode].reset()
         self.classification_metrics[mode].reset()
 

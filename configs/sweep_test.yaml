@@ -1,16 +1,21 @@
-project: perceiver_affection_test
-program: main.py
-#project: tmp
-#program: tmp.py
+project: perceiver_affection_ablation_test
 
-name: baseline
+
+program: main.py
+name: mtl_seed
 method: grid
+
+# configs and arguments need to be specified in parameters
 parameters:
+  test_only:
+    values: [1]
+  arch :
+    values: ['perceiver']
   depth:
     values: [5]
 
   num_latents:
-    values: [256]
+    values: [128]
   latent_dim:
     values: [128]
   lr:
@@ -19,31 +24,48 @@ parameters:
   wandb_mode:
     values: ["online"]
   scheduler:
-    values: [ "constant"]
+    values: ["constant"]
   optimizer:
         values: ["lamb"]
   seed:
-    values: [1995]
-  modalities:
-    #[
-    values:
-    # comment out the following line to run all modalities
+    values: [ 6, 1995, 1996]
 
-      ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
+  epochs:
+    values: [5]
+
+  beta:
+    values: [0.5]
+#  alpha:
+#    values: [0.99]
+  gamma:
+    values: [ 5 ]
+  finetune:
+    values: ["/DATA/jj/affection/results/trainval_mtl_final/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
+#    values: ["/DATA/jj/affection/results/trainval_kd_ablation_final/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_8.0_beta_0.5/last.ckpt"]
+
+
+  modalities:
+    values: [ "text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"] #["text", "facebody", "audio"]
+
   is_baseline:
+    values: [0]
+  # finetune the baseline w/o spd loss but with fairness loss
+  is_incremental:
+    values: [0]
+
+  use_distribution_loss:
     values: [1]
+
+  target_sensitive_group:
+    values: ["gender", "age"]
 
   results_dir:
-    values: ["results/test"]
-
-
-  finetune:
-    values: [ "/home/rootuser/proj/perceiver_affection/results/trainval_bul_baseline_right_uniqueMean/xxx_lr0.004_e60_seed1995_optlamb_bs128_beta0.5_alpha_0.1_gamma_1/last.ckpt" ]
-
-  test_only:
-    values: [1]
-#40 epoch don't consider the talk
-
+#    values: ["/DATA/jj/affection/results/trainval_kd_ablation_test"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_test"]
+  batch_size:
+    values: [128]
+  eval_every_n_epoch:
+    values: [ 1 ]
 metric:
   goal: minimize
   name: test_loss

@@ -1,0 +1,57 @@
+project: perceiver_affection_baseline_trainval_3090_biased
+program: main.py
+#project: tmp
+#program: tmp.py
+
+name: baseline
+method: grid
+parameters:
+  arch:
+    values: [ 'perceiver' ]
+  depth:
+    values: [5]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.004]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [ 6, 1995, 1996]
+  modalities:
+    #[
+    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+
+  epochs:
+    values: [15]
+
+  is_baseline:
+    values: [1]
+
+  results_dir:
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_tmp_biased"]
+
+  bias_sensitive:
+    values: ['gender', 'age']
+
+#40 epoch don't consider the talk
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

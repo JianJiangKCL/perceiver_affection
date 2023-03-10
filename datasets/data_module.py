@@ -60,6 +60,77 @@ class MultiTaskDataset(NpDataset):
         return len(self.targets)
 
 
+class BiasedDatasetWrapper(Dataset):
+    """
+       Utility wrapper so that torch.utils.data.distributed.DistributedSampler can work with train test splits
+       """
+
+    def __init__(self, dataset: MultiTaskDataset, bias_sensitive: str, bias_group: int, bias_personality: int):
+        self.dataset = dataset
+        targets = dataset.targets
+        self.OCEAN_mean = dataset.OCEAN_mean
+        sensitive_targets_dict = dataset.sensitive_targets_dict
+        # first binarize the targets
+        tmp_targets = targets - self.OCEAN_mean
+        tmp_targets[tmp_targets >= 0] = 1
+        tmp_targets[tmp_targets < 0] = 0
+
+        # personality = tmp_targets[:, bias_personality]
+        # # find the indices of samples with tmp_targets = 0
+        # # total 2268 samples
+        # # negative O, 1084 samples; positive O, 1184 samples
+        # personality_indices = np.where(personality == 1)[0]
+        # # female,  1096 samples
+        # sensitive_indices = np.where(sensitive_targets_dict[bias_sensitive] == bias_group)[0]
+
+
+        # create an extreme all biased dataset
+        sensitive_indices = np.where(sensitive_targets_dict['gender'] == bias_group)[0]
+        tmp_indices = []
+        # for i in range(5):
+        for i in [2, 3]:
+            personality = tmp_targets[:, i]
+            if i == 3:
+                personality_indices = np.where(personality == 1)[0]
+            elif i == 2:
+                personality_indices = np.where(personality == 0)[0]
+            tmp_indices.append(personality_indices)
+
+
+        # find union of all indices
+        personality_indices = np.unique(np.concatenate(tmp_indices))
+        # intersection to remove
+        intersect_indices = np.intersect1d(personality_indices, sensitive_indices)
+        # 1678 without female positive O ;; 1172 without female all positive
+        remaining_indices = np.setdiff1d(np.arange(len(targets)), intersect_indices)
+        # to tensor
+        self.remaining_indices = torch.from_numpy(remaining_indices)
+
+        # for age group
+        tmp_indices = []
+        sensitive_indices = np.where(sensitive_targets_dict['age'] == bias_group)[0]
+        for i in [0, 2]:
+            personality = tmp_targets[:, i]
+            personality_indices = np.where(personality == 0)[0]
+            tmp_indices.append(personality_indices)
+        personality_indices = np.unique(np.concatenate(tmp_indices))
+        # intersection to remove
+        intersect_indices = np.intersect1d(personality_indices, sensitive_indices)
+        remaining_indices = np.setdiff1d(intersect_indices, self.remaining_indices)
+        self.remaining_indices = torch.from_numpy(remaining_indices)
+        k=1
+        # self.intersect_indices_1 = np.intersect1d(personality_indices, sensitive_indices_1)
+
+        # then filter those samples with sensitive label = 1 and O=1
+
+    def __len__(self):
+        return len(self.remaining_indices)
+
+    def __getitem__(self, idx):
+        sampled_idx = self.remaining_indices[idx]
+        return self.dataset[sampled_idx]
+
+
 # for each modality, the input_dim = input_axis * ((num_freq_bands * 2) + 1) + input_channels
         # e.g., the input_dim for video is 39
 
