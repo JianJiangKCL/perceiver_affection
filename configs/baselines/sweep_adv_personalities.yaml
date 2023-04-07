@@ -1,0 +1,70 @@
+
+project: adv_udivia_trainval_3090_personality
+program: main_adversarial.py
+#project: tmp
+#program: tmp.py
+
+name: adversarial
+method: grid
+parameters:
+  arch:
+    values: [ 'perceiver' ]
+  depth:
+    values: [5]
+
+  num_latents:
+    values: [128]
+  latent_dim:
+    values: [128]
+  lr:
+    values: [0.004]
+
+  wandb_mode:
+    values: ["online"]
+  scheduler:
+    values: ["constant"]
+  optimizer:
+        values: ["lamb"]
+  seed:
+    values: [ 6, 1995, 1996]
+  modalities:
+
+    values: [ "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]#"text"]#,
+
+  finetune:
+
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_personality/gender/xxx_lr0.004_e30_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/personality_ppp/last.ckpt"]
+
+  epochs:
+    values: [10]
+
+  target_personality:
+    values: [0, 1, 2, 3, 4]
+
+  target_sensitive_group:
+    values: [ "age", "gender"]
+
+  eval_every_n_epoch:
+    values: [1]
+
+
+
+  results_dir:
+
+    values: ["/DATA/jj/affection/adv_results/s1_n5"]
+
+  num_outputs:
+    values: [5]
+
+
+metric:
+  goal: minimize
+  name: test_loss
+
+
+
+
+
+
+
+

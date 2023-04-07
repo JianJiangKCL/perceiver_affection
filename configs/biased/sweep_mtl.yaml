@@ -1,4 +1,4 @@
-project: perceiver_affection_spd_trainval_3090_final
+project: perceiver_affection_spd_trainval_3090_biased
 #project: perceiver_affection_spd_trainval_3090
 
 program: main.py
@@ -34,7 +34,7 @@ parameters:
   batch_size:
     values: [128]
   finetune:
-    values: [ "/DATA/jj/affection/results/trainval_3090_baseline_final/gender/xxx_lr0.004_e60_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/last.ckpt" ]
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_gender_biased/gender/bias_gender_group0_personality0/xxx_lr0.004_e60_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/last.ckpt"]
 
   modalities:
 #    values: [ "text"]
@@ -47,12 +47,16 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["/DATA/jj/affection/results/trainval_mtl_final_with_train_log"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_biased"]
 
   eval_every_n_epoch:
     values: [1]
   target_sensitive_group:
     values: [ "age", "gender" ]
+
+  bias_sensitive:
+    values: [ 'gender' ]
+
 metric:
   goal: minimize
   name: test_loss

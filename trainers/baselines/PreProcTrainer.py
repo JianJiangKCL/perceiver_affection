@@ -8,46 +8,47 @@ import wandb
 from einops import rearrange
 
 
-class BaselineTrainer(TrainerABC):
+class PreProcTrainer(TrainerABC):
     def __init__(self, args, backbone, modalities, sensitive_groups):
-        super(BaselineTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
+        super(PreProcTrainer, self).__init__(args, backbone=backbone, modalities=modalities)
         self.target_sensitive_group = args.target_sensitive_group
         self.sensitive_groups = sensitive_groups
-        print('baseline trainer')
+        #
+
+        # reduction='none' is important for the sample_weight
+        self.mse_loss = nn.MSELoss(reduction='none')
+        print('PreProcTrainer')
 
     def shared_step(self, batch, mode):
-        x, label_ocean, label_sen_dict = batch
+        if mode == 'train':
+            x, label_ocean, label_sen_dict, sample_weights = batch
 
-        if self.args.arch == 'perceiver':
-            modalities_x = {modality: x[modality] for modality in self.modalities}
-            pred_ocean = self.backbone(modalities_x)
-            # loss = self.mse_loss(pred_ocean, label_ocean)
-        elif self.args.arch == 'infomax':
-            modalities_x = {modality: rearrange(x[modality], 'b d () -> b  d') for modality in self.modalities}
-            lld, nce, pred_ocean, pn_dic, H, _ = self.backbone(modalities_x)
-            # alpha defaut 0.3; sigma default 0.1
-            loss_info = self.args.alpha * nce - self.args.sigma * lld
-            # loss = self.mse_loss(pred_ocean, label_ocean)
+        else:
+            x, label_ocean, label_sen_dict = batch
+            sample_weights = torch.ones_like(label_ocean[:, 0])
+
+        modalities_x = {modality: x[modality] for modality in self.modalities}
+        pred_ocean = self.backbone(modalities_x)
 
         if self.args.target_personality is not None:
             if self.args.num_outputs == 5:
-                loss_mse = self.mse_loss(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
-                self.metrics[mode].update(pred_ocean[:, self.args.target_personality], label_ocean[:, self.args.target_personality])
+                loss_mse = self.mse_loss(pred_ocean[:, self.args.target_personality],
+                                         label_ocean[:, self.args.target_personality])
+                self.metrics[mode].update(pred_ocean[:, self.args.target_personality],
+                                          label_ocean[:, self.args.target_personality])
             elif self.args.num_outputs == 1:
                 loss_mse = self.mse_loss(pred_ocean,
                                          label_ocean[:, self.args.target_personality])
                 self.metrics[mode].update(pred_ocean,
                                           label_ocean[:, self.args.target_personality].unsqueeze(1))
-                k=1
+                k = 1
 
         else:
             loss_mse = self.mse_loss(pred_ocean, label_ocean)
             self.metrics[mode].update(pred_ocean, label_ocean)
 
-        if self.args.arch == 'perceiver':
-            loss = loss_mse
-        elif self.args.arch == 'infomax':
-            loss = loss_mse + loss_info
+        loss = loss_mse * sample_weights
+        loss = loss.mean()
 
 
         metric = self.metrics[mode].compute()
@@ -55,15 +56,12 @@ class BaselineTrainer(TrainerABC):
             f'{mode}_loss': loss,
             f'{mode}_metric': metric,
         }
-        
+
         self.log_out(log_data, mode)
-        # compute mse without reduction
-        # with torch.no_grad():
-        #     mse_wo_reduction = self.mse_wo_reduction(pred_ocean, label_ocean)
 
         prefix = '' if mode == 'train' else f'{mode}_'
         ret = {f'{prefix}loss': loss, 'label_sen_dict': label_sen_dict, 'pred_ocean': pred_ocean,
-               'label_ocean': label_ocean} #, 'mse_wo_reduction': mse_wo_reduction}
+               'label_ocean': label_ocean}  # , 'mse_wo_reduction': mse_wo_reduction}
 
         return ret
 

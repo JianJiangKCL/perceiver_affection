@@ -68,6 +68,15 @@ class MultiTaskTrainer(TrainerABC):
 
         loss_spd = self.args.gamma * SPD_loss(pred_ocean, label_sen, target_personality=self.args.target_personality, three_way=True if self.args.target_sensitive_group=='ethnicity' else False)
 
+        if self.args.one_stage:
+            tmp = self.sensitive_groups.copy()
+            tmp.remove(self.target_sensitive_group)
+            left_target_sensitive_group = tmp[0]
+            label_sen_left = label_sen_dict[left_target_sensitive_group]
+            label_sen_left = label_sen_left.long()
+            loss_spd2 = self.args.gamma * SPD_loss(pred_ocean, label_sen_left, target_personality=self.args.target_personality, three_way=True if label_sen_left=='ethnicity' else False)
+            loss_spd = loss_spd + loss_spd2
+
         loss = loss + loss_spd
 
         log_data[f'{mode}_loss_spd'] = loss_spd

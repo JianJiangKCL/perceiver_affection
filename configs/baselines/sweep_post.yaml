@@ -1,13 +1,10 @@
-project: perceiver_affection_baseline_trainval_3090_fiv2
-program: main.py
-#project: tmp
-#program: tmp.py
 
-name: baseline
+project: postp_udivia_trainval_3090_first
+program: main_post.py
+
+name: postProcessing
 method: grid
 parameters:
-  dataset:
-    values: ["fiv2"]
   arch:
     values: [ 'perceiver' ]
   depth:
@@ -29,15 +26,30 @@ parameters:
   seed:
     values: [ 6, 1995, 1996]
   modalities:
-    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
-  epochs:
-    values: [60]
 
-  is_baseline:
+    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+
+  epochs:
     values: [1]
 
+  finetune:
+
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_personality/gender/xxx_lr0.004_e30_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/personality_ppp/last.ckpt"]
+  target_personality:
+    values: [0, 1, 2, 3, 4]
+
+  eval_every_n_epoch:
+    values: [1]
+
+  target_sensitive_group:
+    values: [ "age", "gender" ]
+
   results_dir:
-    values: ["/DATA/jj/affection/fiv2_results/trainval_3090_baseline"]
+
+    values: ["/DATA/jj/affection/postP_results/first_onlytp"]
+
+  num_outputs:
+    values: [5]
 
 
 metric:

@@ -46,7 +46,7 @@ class TrainerABC(pl.LightningModule):
             wandb.log({f'{mode}_mse': metric})  # this is the same as the loss_ocean
             log_MSE_personality(outputs, mode)
             for sensitive_group in self.sensitive_groups:
-                log_DIR(outputs, sensitive_group, mode)
+                log_DIR(outputs, sensitive_group, mode, self.args.target_personality)
                 log_gap(outputs, sensitive_group, mode)
                 log_MSE_sensitive(outputs, sensitive_group, mode)
 

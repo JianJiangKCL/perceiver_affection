@@ -31,16 +31,16 @@ parameters:
     values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
 
   epochs:
-    values: [15]
+    values: [30, 60]
 
   is_baseline:
     values: [1]
 
   results_dir:
-    values: ["/DATA/jj/affection/results/trainval_3090_baseline_tmp_biased"]
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_gender_biased"]
 
   bias_sensitive:
-    values: ['gender', 'age']
+    values: ['gender']
 
 #40 epoch don't consider the talk
 

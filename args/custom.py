@@ -47,6 +47,9 @@ def custom_args(parser: ArgumentParser):
 	parser.add_argument("--bias_group", type=int, default=0, help='create biased dataset')
 	parser.add_argument("--bias_personality", type=int, default=0, help='create biased dataset')
 
+	# for baseline one-stage learning
+	parser.add_argument("--one_stage", choices=[0, 1], type=int, default=0)
+
 
 
 	# for MMI

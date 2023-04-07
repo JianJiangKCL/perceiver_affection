@@ -1,0 +1,39 @@
+project: fairpre_udivia_trainval_3090_personality
+program: main_pre.py
+name: fairpre
+# general args
+# model
+arch : perceiver
+
+depth : 5
+num_latents : 128
+latent_dim : 128
+
+num_outputs : 5
+
+num_workers : 0
+batch_size : 2
+
+distributed : False
+gpus : 1
+optimizer : lamb
+scheduler : constant
+is_baseline : 1
+seed: 6
+eval_every_n_epoch : 1
+target_personality : 0
+modalities: [text,facebody]
+
+
+#sensitive_group: age
+#finetune: H:/tmp_results/text_lr0.004_e60_seed6_optlamb_bs128_beta0.5_alpha_0.1_gamma_1_beta_0.5/personality_0/last.ckpt
+#wandb_mode: offline
+
+
+
+
+
+
+
+
+

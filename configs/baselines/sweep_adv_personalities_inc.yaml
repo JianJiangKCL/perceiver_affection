@@ -1,13 +1,12 @@
-project: perceiver_affection_baseline_trainval_3090_fiv2
-program: main.py
+
+project: adv_udivia_trainval_3090_personality_inc
+program: main_adversarial.py
 #project: tmp
 #program: tmp.py
 
-name: baseline
+name: adversarial
 method: grid
 parameters:
-  dataset:
-    values: ["fiv2"]
   arch:
     values: [ 'perceiver' ]
   depth:
@@ -29,15 +28,26 @@ parameters:
   seed:
     values: [ 6, 1995, 1996]
   modalities:
-    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
-  epochs:
-    values: [60]
+     values: [ "text_facebody_audio"]
+#    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
 
-  is_baseline:
+
+  epochs:
+    values: [10]
+
+  target_personality:
+    values: [0]
+
+  eval_every_n_epoch:
     values: [1]
 
+
   results_dir:
-    values: ["/DATA/jj/affection/fiv2_results/trainval_3090_baseline"]
+
+    values: ["/DATA/jj/affection/adv_results/s_inc"]
+
+  num_outputs:
+    values: [1]
 
 
 metric:

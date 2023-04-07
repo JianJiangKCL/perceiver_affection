@@ -1,5 +1,5 @@
 
-project: perceiver_affection_baseline_trainval_3090_personality
+project: perceiver_affection_baseline_trainval_3090_personality_n1
 program: main.py
 #project: tmp
 #program: tmp.py
@@ -34,19 +34,22 @@ parameters:
 #      ["text", "facebody", "audio", "senti_speech_time", "text_facebody", "text_audio", "text_senti_speech_time", "facebody_audio", "facebody_senti_speech_time", "audio_senti_speech_time", "text_facebody_audio", "text_facebody_senti_speech_time", "text_audio_senti_speech_time", "facebody_audio_senti_speech_time", "text_facebody_audio_senti_speech_time"]
 
   epochs:
-    values: [30]
+    values: [15, 30]
   target_personality:
     values: [0, 1, 2, 3, 4]
 
   eval_every_n_epoch:
-    values: [ 1 ]
+    values: [1]
 
   is_baseline:
     values: [1]
 
   results_dir:
 #    values: ["results/trainval_a5000_baseline_right_uniqueMean"]
-    values: ["/DATA/jj/affection/results/trainval_3090_baseline_personality"]
+    values: ["/DATA/jj/affection/results/trainval_3090_baseline_personality_n1"]
+
+  num_outputs:
+    values: [1]
 #40 epoch don't consider the talk
 
 metric:

@@ -79,7 +79,7 @@ def entropy_loss_func(logits):
 
 
 # binary OCEAN values in a batch manner
-def get_binary_ocean_values(ocean_values, STE=True):
+def get_binary_ocean_values(ocean_values, STE=True, target_personality=None):
     '''
     #1. Took the mean of each of the OCEAN values from the train set, which gave me the values
     # OPENMINDEDNESS_Z mean is =  0.31256767999999996
@@ -94,8 +94,15 @@ def get_binary_ocean_values(ocean_values, STE=True):
     STE is the straight through gradient estimator, used to pass gradients of binary OCEAN values to the original OCEAN values
     '''
     original_ocean_values = ocean_values
-    ocean_values = ocean_values.cpu().detach()#.numpy()
-    ocean_values = ocean_values - torch.tensor(OCEAN_MEANS)
+    if isinstance(ocean_values, np.ndarray):
+        ocean_values = torch.tensor(ocean_values)
+    # if in gpu, move to cpu
+    if ocean_values.is_cuda:
+        ocean_values = ocean_values.cpu().detach()#.numpy()
+    if target_personality is None:
+        ocean_values = ocean_values - torch.tensor(OCEAN_MEANS)
+    else:
+        ocean_values = ocean_values - torch.tensor(OCEAN_MEANS)[target_personality]
     # fast way to get binary OCEAN values
     binary_ocean_values = torch.where(ocean_values > 0, torch.tensor(1), torch.tensor(0))
     # time-consuming version
@@ -207,7 +214,7 @@ def separate_binary_label_group(to_separate, labels):
 
 
 @torch.no_grad()
-def DIR_metric(OCEAN_bin_preds, sensitive_labels):
+def DIR_metric(OCEAN_bin_preds, sensitive_labels, target_personality=None):
     # two groups based on the sensitive labels
     OCEAN_preds_0, OCEAN_preds_1 = separate_binary_label_group(OCEAN_bin_preds, sensitive_labels)
     num_1 = len(OCEAN_preds_1)
@@ -218,12 +225,45 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
     # iter over the 5 OCEAN features
     DIRs= []
     SPDs = []
-    for i in range(5):
+    list_p_privileged = []
+    if target_personality is None:
+        for i in range(5):
 
-        # calculate the proportion of positive predictions (y==1) for the privileged group
-        # diretly 1- p for evaluation doesn't meet the expectation
-        p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
-        p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+            # calculate the proportion of positive predictions (y==1) for the privileged group
+            # diretly 1- p for evaluation doesn't meet the expectation
+            p_0 = torch.sum(OCEAN_preds_0[:, i]) / num_0
+            p_1 = torch.sum(OCEAN_preds_1[:, i]) / num_1
+            # if nan set 0; don't need to be differentiable here
+            if torch.isnan(p_0):
+                p_0 = torch.tensor([0.])
+            if torch.isnan(p_1):
+                p_1 = torch.tensor([0.])
+            if p_0 >= p_1:
+                p_privileged = p_0
+                p_unprivileged = p_1
+            else:
+                p_privileged = p_1
+                p_unprivileged = p_0
+            # if p_privileged == 0:  # so p_unprivileged is also 0
+            #
+            #     disparate_impact_ratio = -1
+            #     DIRs.append(disparate_impact_ratio)
+            #     statistical_parity_difference = -1
+            #     SPDs.append(statistical_parity_difference)
+            # else:
+            eps = 0.0001
+            p_privileged = p_privileged + eps
+            p_unprivileged = p_unprivileged + eps
+            disparate_impact_ratio = p_unprivileged / p_privileged
+            DIRs.append(disparate_impact_ratio)
+            statistical_parity_difference = p_unprivileged - p_privileged
+            SPDs.append(statistical_parity_difference)
+            list_p_privileged.append(p_privileged)
+        return DIRs, SPDs, list_p_privileged
+
+    else:
+        p_0 = torch.sum(OCEAN_preds_0[:]) / num_0
+        p_1 = torch.sum(OCEAN_preds_1[:]) / num_1
         # if nan set 0; don't need to be differentiable here
         if torch.isnan(p_0):
             p_0 = torch.tensor([0.])
@@ -235,21 +275,14 @@ def DIR_metric(OCEAN_bin_preds, sensitive_labels):
         else:
             p_privileged = p_1
             p_unprivileged = p_0
-        # if p_privileged == 0:  # so p_unprivileged is also 0
-        #
-        #     disparate_impact_ratio = -1
-        #     DIRs.append(disparate_impact_ratio)
-        #     statistical_parity_difference = -1
-        #     SPDs.append(statistical_parity_difference)
-        # else:
+
         eps = 0.0001
         p_privileged = p_privileged + eps
         p_unprivileged = p_unprivileged + eps
         disparate_impact_ratio = p_unprivileged / p_privileged
-        DIRs.append(disparate_impact_ratio)
         statistical_parity_difference = p_unprivileged - p_privileged
-        SPDs.append(statistical_parity_difference)
-    return DIRs, SPDs
+        list_p_privileged.append(p_privileged)
+        return disparate_impact_ratio, statistical_parity_difference, list_p_privileged
 
 
 @torch.no_grad()
@@ -266,6 +299,7 @@ def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
     # iter over the 5 OCEAN features
     DIRs= []
     SPDs = []
+    list_p_privileged = []
     for i in range(5):
 
         # calculate the proportion of positive predictions (y==1) for the privileged group
@@ -295,38 +329,72 @@ def DIR_metric_three_way(OCEAN_bin_preds, sensitive_labels):
         DIRs.append(disparate_impact_ratio)
         statistical_parity_difference = p_unprivileged - p_privileged
         SPDs.append(statistical_parity_difference)
-    return DIRs, SPDs
+        list_p_privileged.append(p_privileged)
+    return DIRs, SPDs, list_p_privileged
 
 
 @torch.no_grad()
-def log_DIR(outputs, sensitive_group, mode):
+def log_DIR(outputs, sensitive_group, mode, target_personality=None):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     binary_pred_ocean = get_binary_ocean_values(pred_ocean, STE=False)
 
     sensitive_labels = torch.cat([output['label_sen_dict'][sensitive_group] for output in outputs])
+    metric_name = ['O', 'C', 'E', 'A', 'N']
 
     # calculate OCEAN individually
-    metric_name = ['O', 'C', 'E', 'A', 'N']
     if sensitive_group == 'ethnicity':
-        DIRs, SPDs = DIR_metric_three_way(binary_pred_ocean, sensitive_labels)
+        DIRs, SPDs, list_p_privileged = DIR_metric_three_way(binary_pred_ocean, sensitive_labels, target_personality)
     else:
-        DIRs, SPDs = DIR_metric(binary_pred_ocean, sensitive_labels)
-    for i in range(5):
-        wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
-        wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
-
+        DIRs, SPDs, list_p_privileged = DIR_metric(binary_pred_ocean, sensitive_labels, target_personality)
+    if target_personality is None:
+        # calculate OCEAN individually
+        for i in range(5):
+            wandb.log({f'{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
+            wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
+            wandb.log({f'{sensitive_group}_{mode}_p_privileged_{metric_name[i]}': list_p_privileged[i]})
+    else:
+        wandb.log({f'{sensitive_group}_{mode}_DIR_{target_personality}': DIRs})
+        wandb.log({f'{sensitive_group}_{mode}_SPD_{target_personality}': SPDs})
+        wandb.log({f'{sensitive_group}_{mode}_p_privileged_{target_personality}': list_p_privileged})
 
 @torch.no_grad()
-def log_MSE_personality(outputs, mode):
+def log_DIR_v2(binary_pred_ocean, sensitive_labels, sensitive_group, mode, target_personality=None, log_suffix=''):
+
+    metric_name = ['O', 'C', 'E', 'A', 'N']
+
+    # calculate OCEAN individually
+    if sensitive_group == 'ethnicity':
+        DIRs, SPDs, list_p_privileged = DIR_metric_three_way(binary_pred_ocean, sensitive_labels, target_personality)
+    else:
+        DIRs, SPDs, list_p_privileged = DIR_metric(binary_pred_ocean, sensitive_labels, target_personality)
+    # if target_personality is None:
+    #     # calculate OCEAN individually
+    #     for i in range(5):
+    #         wandb.log({f'{log_suffix}{sensitive_group}_{mode}_DIR_{metric_name[i]}': DIRs[i]})
+    #         # wandb.log({f'{sensitive_group}_{mode}_SPD_{metric_name[i]}': SPDs[i]})
+    #         # wandb.log({f'{sensitive_group}_{mode}_p_privileged_{metric_name[i]}': list_p_privileged[i]})
+    # else:
+    wandb.log({f'{log_suffix}{sensitive_group}_{mode}_DIR_{target_personality}': DIRs})
+        # wandb.log({f'{sensitive_group}_{mode}_SPD_{target_personality}': SPDs})
+        # wandb.log({f'{sensitive_group}_{mode}_p_privileged_{target_personality}': list_p_privileged})
+
+@torch.no_grad()
+def log_MSE_personality(outputs, mode, target_personality=None):
     pred_ocean = torch.cat([output['pred_ocean'] for output in outputs])
     label_ocean = torch.cat([output['label_ocean'] for output in outputs])
+
     # calculate MSE for each dimension
     MSE = F.mse_loss(pred_ocean, label_ocean, reduction='none')
-    # 5 dimensions, 5 metrics
-    metric_name = ['O', 'C', 'E', 'A', 'N']
-    for i in range(5):
-        # output the average MSE for each dimension
-        wandb.log({f'{mode}_MSE_{metric_name[i]}': MSE[:, i].mean()})
+    if target_personality is not None:
+        # 1 dimension, 1 metric
+        wandb.log({f'{mode}_mse_{target_personality}': MSE})
+
+    else:
+        # 5 dimensions, 5 metrics
+        metric_name = ['O', 'C', 'E', 'A', 'N']
+        for i in range(5):
+            # output the average MSE for each dimension
+            wandb.log({f'{mode}_mse_{metric_name[i]}': MSE[:, i].mean()})
 
 
 @torch.no_grad()

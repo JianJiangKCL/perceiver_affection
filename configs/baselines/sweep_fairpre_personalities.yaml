@@ -1,13 +1,12 @@
-project: perceiver_affection_baseline_trainval_3090_fiv2
-program: main.py
+
+project: fairpre_udivia_trainval_3090_personality
+program: main_pre.py
 #project: tmp
 #program: tmp.py
 
-name: baseline
+name: fairpre
 method: grid
 parameters:
-  dataset:
-    values: ["fiv2"]
   arch:
     values: [ 'perceiver' ]
   depth:
@@ -29,16 +28,28 @@ parameters:
   seed:
     values: [ 6, 1995, 1996]
   modalities:
+    #[
     values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+
   epochs:
-    values: [60]
+    values: [45]
+
+  target_personality:
+    values: [0, 1, 2, 3, 4]
+
+  eval_every_n_epoch:
+    values: [1]
 
   is_baseline:
     values: [1]
 
   results_dir:
-    values: ["/DATA/jj/affection/fiv2_results/trainval_3090_baseline"]
 
+    values: ["/DATA/jj/affection/results/prefair"]
+
+  num_outputs:
+    values: [5]
+#40 epoch don't consider the talk
 
 metric:
   goal: minimize

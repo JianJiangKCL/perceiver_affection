@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from models.multi_modality_perceiver import InputModality
 import torch
-
+from typing import Dict
 
 class NpDataset(Dataset):
 
@@ -37,6 +37,8 @@ class NpDataset(Dataset):
 
         return dict(zip(self.modalities, modality_data)), self.targets[index]
 
+
+
     def __len__(self):
         return len(self.targets)
 
@@ -49,15 +51,31 @@ class MultiTaskDataset(NpDataset):
 
         d = np.load(data_path)
         self.sensitive_groups = sensitive_groups
+        # sensitive label for each sensitive group
         self.sensitive_targets_dict = {group: torch.from_numpy(d[group]) for group in sensitive_groups}
+        self.sample_weights = None
 
     def __getitem__(self, index):
         modality_data, ocean_target = super().__getitem__(index)
         sensitive_targets = {group:self.sensitive_targets_dict[group][index] for group in self.sensitive_groups}
+        if self.sample_weights is not None:
+            return modality_data, ocean_target, sensitive_targets, self.sample_weights[index]
         return modality_data, ocean_target, sensitive_targets
 
     def __len__(self):
         return len(self.targets)
+
+    def get_all_data(self):
+        # return a dict containing all modalities data and targets, and sensitive attributes
+        return {modality: getattr(self, modality) for modality in self.modalities}, self.targets, self.sensitive_targets_dict
+
+    def set_all_data(self, data: Dict):
+        # set all modalities data
+        for modalities, data in data.items():
+            setattr(self, modalities, data)
+
+    def set_sample_weights(self, sample_weights):
+        self.sample_weights = torch.from_numpy(sample_weights)
 
 
 class BiasedDatasetWrapper(Dataset):
@@ -107,17 +125,17 @@ class BiasedDatasetWrapper(Dataset):
         self.remaining_indices = torch.from_numpy(remaining_indices)
 
         # for age group
-        tmp_indices = []
-        sensitive_indices = np.where(sensitive_targets_dict['age'] == bias_group)[0]
-        for i in [0, 2]:
-            personality = tmp_targets[:, i]
-            personality_indices = np.where(personality == 0)[0]
-            tmp_indices.append(personality_indices)
-        personality_indices = np.unique(np.concatenate(tmp_indices))
-        # intersection to remove
-        intersect_indices = np.intersect1d(personality_indices, sensitive_indices)
-        remaining_indices = np.setdiff1d(intersect_indices, self.remaining_indices)
-        self.remaining_indices = torch.from_numpy(remaining_indices)
+        # tmp_indices = []
+        # sensitive_indices = np.where(sensitive_targets_dict['age'] == bias_group)[0]
+        # for i in [0, 2]:
+        #     personality = tmp_targets[:, i]
+        #     personality_indices = np.where(personality == 0)[0]
+        #     tmp_indices.append(personality_indices)
+        # personality_indices = np.unique(np.concatenate(tmp_indices))
+        # # intersection to remove
+        # intersect_indices = np.intersect1d(personality_indices, sensitive_indices)
+        # remaining_indices = np.setdiff1d(intersect_indices, self.remaining_indices)
+        # self.remaining_indices = torch.from_numpy(remaining_indices)
         k=1
         # self.intersect_indices_1 = np.intersect1d(personality_indices, sensitive_indices_1)
 

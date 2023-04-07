@@ -30,11 +30,31 @@ def get_OCEAN(d, labels):
 	OCEAN = np.transpose(OCEAN)
 	return OCEAN
 
+def combine_csv_fiv2(data_path, mode, save_path):
+	def change_video_name(pd):
+		# the value of video column is the combination of video and number columns
+		video = pd.video.to_numpy()
+		number = pd.number.to_numpy()
+		# change the video name
+		video = np.array([f'{v}.{str(n).zfill(3)}.mp4' for v, n in zip(video, number)])
+		pd.video = video
+		return pd
+
+	# combine the csv files based on the video_id
+	audio_pd = pd.read_csv(os.path.join(data_path, f'fiv2_{mode}_audio.csv'))
+	audio_pd = change_video_name(audio_pd)
+
+	video_pd = pd.read_csv(os.path.join(data_path, f'fiv2_{mode}_video.csv'))
+	video_pd = change_video_name(video_pd)
+
+	text_pd = pd.read_csv(os.path.join(data_path, f'fiv2_{mode}_text.csv'))
+
+
 def convert_data_fiv2(data_path, mode, save_path):
 	print('build dataset...')
 	labels = ['OPENMINDEDNESS_Z', 'CONSCIENTIOUSNESS_Z', 'EXTRAVERSION_Z', 'AGREEABLENESS_Z', 'NEGATIVEEMOTIONALITY_Z']
 
-	path = os.path.join(data_path, f'fiv2_bert_{mode}.csv')
+	path = os.path.join(data_path, f'bert_audi_faci_{mode}.csv')
 
 	data = pd.read_csv(path)
 
@@ -46,28 +66,28 @@ def convert_data_fiv2(data_path, mode, save_path):
 	comb_OCEAN = get_OCEAN(data, labels).astype(np.float32)
 
 	# calculate the mean of the OCEAN
-	video_id = data.video_id.to_numpy()
-	id = data.p_id.to_numpy()
-	clip_id = data.c_id.to_numpy()
+	video_id = data.video_name.to_numpy().astype(np.str_)
+	p_id = data.video.to_numpy().astype(np.str_)
+	clip_id = data.number.to_numpy().astype(np.int64)
 	# combined
 	comb = data
 
 	Bt_keep_cols = [(f'{i}_bt') for i in range(0, 512)]
-	# Fb_keep_cols = [(f'{i}_fb') for i in range(0, 552)]
-	# audio_keep_cols = [(f'audi_{i}') for i in range(0, 59)]
+	Fb_keep_cols = [(f'{i}__faci') for i in range(0, 407)]
+	audio_keep_cols = [(f'{i}__audi') for i in range(0, 59)]
 
 
 	comb_bt = np.array(comb[Bt_keep_cols]).astype(np.float32)
-	# comb_fb = np.array(comb[Fb_keep_cols]).astype(np.float32)
-	# com_audio = np.array(comb[audio_keep_cols]).astype(np.float32)
+	comb_fb = np.array(comb[Fb_keep_cols]).astype(np.float32)
+	com_audio = np.array(comb[audio_keep_cols]).astype(np.float32)
 
-	total_modality_name = ['text']#, 'facebody', 'senti', 'speech', 'audio', 'time', 'talk']
-	total_modality = [comb_bt]#, comb_fb, comb_senti, comb_speech, com_audio, comb_time, comb_talk]
+	total_modality_name = ['text', 'facebody', 'audio']
+	total_modality = [comb_bt, comb_fb, com_audio]
 	file_name = '_'.join(total_modality_name)
 	# gender = np.array
 	file_name = os.path.join(save_path, f'fiv2_{mode}_{file_name}.npz')
 	np.savez(file_name, **dict(zip(total_modality_name, total_modality)), OCEAN=comb_OCEAN, ethnicity=mapped_ethnicity,
-	         gender=mapped_gender, id=id, video_id=video_id, clip_id=clip_id)
+	         gender=mapped_gender, id=p_id, video_id=video_id, clip_id=clip_id)
 	return file_name
 
 def convert_data_udiva(data_path, mode, save_path):
@@ -169,14 +189,22 @@ def main(args):
 		# suffix = val_file_name.split('\\')[-1].split('validation_')[-1]
 		# combine_train_val(val_file_name, test_file_name, os.path.join(save_path, f'validation_test_{suffix}'))
 	elif dataset == 'fiv2':
-		trainval_file_name = convert_data_fiv2(data_path, 'train_val', save_path)
+		train_file_name = convert_data_fiv2(data_path, 'training', save_path)
+		val_file_name = convert_data_fiv2(data_path, 'validation', save_path)
 		test_file_name = convert_data_fiv2(data_path, 'test', save_path)
-		train_val_data = np.load(trainval_file_name)
+		# combine train and validation data
+		suffix = train_file_name.split('\\')[-1].split('train_')[-1]
+		combine_train_val(train_file_name, val_file_name, os.path.join(save_path, f'train_val_{suffix}'))
+
+		train_val_data = np.load(os.path.join(save_path, f'train_val_{suffix}'))
+
 		test_data = np.load(test_file_name)
+		train_val_bert = train_val_data['text']
 		train_bert = train_val_data['text']
 		test_bert = test_data['text']
 		t=3
 		k=1
+
 	##################################
 	k=1
 

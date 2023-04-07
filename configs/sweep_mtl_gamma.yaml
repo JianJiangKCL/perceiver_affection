@@ -30,7 +30,7 @@ parameters:
   # gamma bigger than 100 will have big impact on the val loss for audio
   gamma:
 #    values: [2, 2.5, 3, 5]
-    values: [ 5 ]
+    values: [ 0, 0.1, 1, 10, 100 ]
   batch_size:
     values: [128]
   finetune:
@@ -47,7 +47,7 @@ parameters:
     values: [1]
 
   results_dir:
-    values: ["/DATA/jj/affection/results/trainval_mtl_final_with_train_log"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_gamma"]
 
   eval_every_n_epoch:
     values: [1]

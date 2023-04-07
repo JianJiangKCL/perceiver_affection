@@ -1,5 +1,6 @@
-project: perceiver_affection_v100_age26_trainval
-name: 5
+project: adv_udivia_trainval_3090_personality
+program: main_adversarial.py
+name: adversarial
 # general args
 # model
 arch : perceiver
@@ -7,19 +8,16 @@ arch : perceiver
 depth : 5
 num_latents : 128
 latent_dim : 128
-cross_heads : 1
-latent_heads : 8
-cross_dim_head : 64
-latent_dim_head : 64
-num_outputs : 5
+
+num_outputs : 1
 
 #arch : infomax
 # train
 lr : 0.004
-epochs : 60
+epochs : 30
 
-num_workers : 4
-batch_size : 128
+num_workers : 0
+batch_size : 2
 
 distributed : False
 gpus : 1
@@ -28,6 +26,8 @@ scheduler : constant
 is_baseline : 1
 seed: 1995
 eval_every_n_epoch : 1
+target_personality : 0
+modalities: [text_facebody_audio]
 #wandb_mode: offline
 
 

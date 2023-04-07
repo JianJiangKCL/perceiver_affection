@@ -12,7 +12,7 @@ GPU_ID=0
 
 SEEDS=(1995  6 1996 1997)
 
-CONFIG='configs/fiv2/perceiver_baseline.yaml'
+CONFIG='configs/fiv2/adv_personality.yaml'
 modes=("audio")
 #FINETUNE=
 for mode in ${modes[*]}

@@ -1,14 +1,12 @@
-project: perceiver_affection_third_trainval_3090_fiv2
+project: perceiver_affection_third_trainval_3090_biased
 
 
 program: main.py
-name: kd
+name: mtl_seed
 method: grid
 
 # configs and arguments need to be specified in parameters
 parameters:
-  dataset:
-    values: [ "fiv2" ]
   arch :
     values: ['perceiver']
   depth:
@@ -34,15 +32,17 @@ parameters:
     values: [5]
 
   beta:
-    values: [0.5]
-
+    values: [ 0.5]
+#  alpha:
+#    values: [0.99]
   gamma:
-    values: [ 10 ]
+    values: [ 8]
   finetune:
-    values: ["/DATA/jj/affection/fiv2_results/trainval_3090_second/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
+    values: ["/DATA/jj/affection/results/trainval_mtl_biased/ttt/xxx_lr0.004_e5_seedsss_optlamb_bs128_beta0.5_alpha_0.1_gamma_5.0_beta_0.5/last.ckpt"]
 
   modalities:
-    values:  ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+    values: ["text", "facebody", "audio", "text_facebody", "text_audio", "facebody_audio", "text_facebody_audio"]
+
 
   is_baseline:
     values: [0]
@@ -50,18 +50,22 @@ parameters:
   is_incremental:
     values: [1]
 
-
+  use_distribution_loss:
+    values: [1]
 
   target_sensitive_group:
-    values: [  "gender" , "ethnicity"]
+    values: ["gender", "age"]
 
   results_dir:
-    values: ["/DATA/jj/affection/fiv2_results/trainval_3090_third"]
+    values: ["/DATA/jj/affection/results/third_biased"]
 
   batch_size:
     values: [128]
   eval_every_n_epoch:
     values: [ 1 ]
+
+  bias_sensitive:
+    values: [ 'gender' ]
 metric:
   goal: minimize
   name: test_loss

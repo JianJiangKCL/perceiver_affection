@@ -87,7 +87,8 @@ class MultiModalityPerceiver(nn.Module):
             nn.LayerNorm(latent_dim),
             nn.Linear(latent_dim, num_outputs)
         )
-        self.cosine_fc = CosineLinear(latent_dim, 2)
+        # todo for previous version, we include this cosine layer but it is not used.
+        # self.cosine_fc = CosineLinear(latent_dim, 2)
 
     def forward(self, multi_modality_data: Dict[str, Tensor], mask=None):
 
@@ -153,9 +154,9 @@ class MultiModalityPerceiver(nn.Module):
             x = latent_transformer(x) + x
         x = self.pool(x)
         flag_large_output = 0
-        if torch.mean(x) > 100:
-            flag_large_output = 1
-        wandb.log({"flag_large_output": flag_large_output})
+        # if torch.mean(x) > 100:
+        #     flag_large_output = 1
+        # wandb.log({"flag_large_output": flag_large_output})
         return x
 
     def pool(self, x):
